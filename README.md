@@ -1,138 +1,113 @@
 # VOX//VAULT — カラオケアーカイブ
 
-A cyberpunk (holographic glassmorphism) **karaoke library manager** for desktop web,
-built from the Claude Design handoff (`Vox Vault.dc.html`). Register songs from
-YouTube, organize them into playlists, favorite tracks, log every time you sing a
-song, and explore a rich analytics dashboard.
+デスクトップ Web 向けのサイバーパンク風ホログラフィックガラスモーフィズム **カラオケライブラリマネージャー**。Claude Design からの設計をもとに実装されています（`Vox Vault.dc.html`）。YouTube から曲を登録し、プレイリストで整理し、お気に入り登録し、歌唱回数を毎回記録して、充実したアナリティクスダッシュボードを探索できます。
 
-This repo implements the design as a real app: a **Node + Express + SQLite** backend
-that persists everything (replacing the prototype's `localStorage`), serving a faithful
-**vanilla-JS** recreation of the UI. Ships in a single Docker container.
+このリポジトリはデザイン仕様を実動的なアプリとして実装しました：**Node + Express + SQLite** バックエンドがすべてのデータを永続化し（プロトタイプの `localStorage` を置き換え）、忠実な **vanilla-JS** フロントエンド SPA を提供します。単一の Docker コンテナで動作します。
 
-## Quick start (Docker)
+## クイックスタート（Docker）
 
 ```bash
 docker compose up --build
 ```
 
-Then open **http://localhost:4030**. The database is seeded with the sample
-library on first launch and persisted in the `vox-data` Docker volume.
-(The container still listens on port 3000 internally; `docker-compose.yml`
-maps it to host port **4030**.)
+その後 **http://localhost:4030** を開いてください。データベースは初回起動時にサンプルライブラリでシードされ、`vox-data` Docker ボリュームで永続化されます。
+（コンテナ内部はポート 3000 をリッスンしており、`docker-compose.yml` がホストポート **4030** にマッピングしています。）
 
-To enable real YouTube search in the register flow, provide a
-[YouTube Data API v3](https://developers.google.com/youtube/v3) key:
+登録フローで YouTube の実際の検索を有効にするには、[YouTube Data API v3](https://developers.google.com/youtube/v3) のキーを指定します：
 
 ```bash
 YOUTUBE_API_KEY=your_key_here docker compose up --build
 ```
 
-Without a key the register flow returns mock candidates — the full UI/flow still works.
+キーがない場合、登録フローはサンプル候補を返します。ただし UI / フロー全体は動作します。
 
-### Data persistence
+### データの永続化
 
-By default, the database is stored in a Docker volume (`vox-data`) that survives
-container rebuilds and restarts. To mount the data to a host folder instead,
-edit `docker-compose.yml`:
+デフォルトでは、データベースは Docker ボリューム（`vox-data`）に保存され、コンテナの再ビルド・再起動後も保持されます。ホストフォルダにマウントしたい場合は、`docker-compose.yml` を編集してください：
 
 ```yaml
 volumes:
-  - ./vox-data:/app/data  # mount host folder instead of named volume
+  - ./vox-data:/app/data  # 名前付きボリュームの代わりにホストフォルダをマウント
 ```
 
-Then create the folder and run:
+その後フォルダを作成して実行します：
 
 ```bash
 mkdir -p vox-data
 docker compose up --build
 ```
 
-The SQLite database file (`vox-vault.db`) will now live in `./vox-data/` on your
-machine, readable and portable.
+SQLite データベースファイル（`vox-vault.db`）は `./vox-data/` にあり、ご使用のマシンで読み取りと移植が可能です。
 
-## Run locally without Docker
+## Docker なしでローカル実行
 
 ```bash
 cd backend
 npm install
-npm start          # http://localhost:3000  (serves ../frontend too)
+npm start          # http://localhost:3000  （フロントエンドも提供）
 ```
 
-Requires Node 20+ (developed on Node 22).
+Node 20 以上が必須です（Node 22 で開発）。
 
-## Features
+## 機能
 
-- **ライブラリ (Library)** — high-density list **and** grid views; filter by genre
-  (ボカロ / アニソン / アーティスト / ゲーム), free-text search, sortable columns
-  (title / publish date / views / sings). The GENRE column only shows on “すべて”.
-- **楽曲を登録 (Register)** — 3-step flow: search → pick a YouTube candidate → confirm
-  metadata (auto-filled title/artist/date) and set genre, 歌唱ボカロ (vocaloid only),
-  作品名 (anime only), and freeform tags → saved to the vault.
-- **マイリスト (Playlists)** — create/delete lists, add/remove songs, 4-tile genre-color
-  collage covers.
-- **お気に入り (Favorites)** — star toggle, grid view.
-- **統計 (Analytics)** — genre donut, monthly bars, cumulative area, top-artists bars,
-  favorite-rate gauge, a 70-day sing **heatmap**, top songs, and a 30-day daily-sings line.
-- **Themes** — HOLO / NEON / ACID, switched from the sidebar, persisted server-side.
-- **Sing logging** — the ▶ button records a sing with today's date; all charts derive
-  from this history.
+- **ライブラリ (Library)** — 高密度リスト**および**グリッドビュー；ジャンル（ボカロ / アニソン / アーティスト / ゲーム）でフィルタ、全文検索、ソート可能なカラム（タイトル / 投稿日 / 視聴数 / 歌唱数）。ジャンル列は「すべて」表示時のみ。
+- **楽曲を登録 (Register)** — 3 ステップフロー：YouTube で検索 → 候補から選択 → メタデータ確認（タイトル・アーティスト・投稿日は自動入力）、ジャンル・歌唱ボカロ（ボカロのみ）・作品名（アニメのみ）・フリーフォームタグを設定 → VAULT に保存。
+- **マイリスト (Playlists)** — リスト作成・削除、曲追加・削除、4 タイルジャンルカラーのコラージュカバー。
+- **お気に入り (Favorites)** — スター切り替え、グリッドビュー。
+- **統計 (Analytics)** — ジャンル比率ドーナツ、月別棒グラフ、累積面グラフ、トップアーティスト棒、お気に入り率ゲージ、70 日間歌唱**ヒートマップ**、トップ曲、30 日間日別歌唱推移。
+- **テーマ** — HOLO / NEON / ACID、サイドバーから切り替え、サーバーサイド永続化。
+- **歌唱ログ** — ▶ ボタンで本日の日付付きで歌唱を記録；すべてのグラフはこの履歴から計算。
 
-## Architecture
+## アーキテクチャ
 
 ```
 vox-vault/
-├── docker-compose.yml        # one service, persistent volume
+├── docker-compose.yml        # 1 つのサービス、永続ボリューム
 ├── backend/
-│   ├── Dockerfile            # node:22-slim, serves API + static frontend
+│   ├── Dockerfile            # node:22-slim、API + 静的フロントエンド配信
 │   └── src/
-│       ├── server.js         # Express REST API + static host
-│       ├── db.js             # SQLite schema + serializers (better-sqlite3)
-│       ├── seed.js           # sample data ported from the prototype
-│       └── youtube.js        # mock search; real YouTube Data API v3 when keyed
+│       ├── server.js         # Express REST API + 静的ホスト
+│       ├── db.js             # SQLite スキーマ + シリアライザ（better-sqlite3）
+│       ├── seed.js           # プロトタイプから移植したサンプルデータ
+│       └── youtube.js        # モック検索；YOUTUBE_API_KEY 指定時は YouTube Data API v3
 └── frontend/
-    ├── index.html            # fonts, keyframes, base styles
-    └── app.js                # full SPA (render + state + API client)
+    ├── index.html            # フォント、キーフレーム、基本スタイル
+    └── app.js                # フル SPA（レンダリング + 状態管理 + API クライアント）
 ```
 
-The backend is the source of truth; the frontend hydrates from `GET /api/state` on
-load and persists every mutation through the API. Analytics are computed client-side
-from the fetched song/sing data, exactly matching the design.
+バックエンドが唯一のデータソースです；フロントエンドは起動時に `GET /api/state` から全データを取得し、すべての変更を API 経由で永続化します。アナリティクスはクライアントサイドで計算されて設計と完全に一致します。
 
 ## REST API
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET    | `/api/state` | Full hydration payload: songs, playlists, favorites, settings |
-| GET    | `/api/songs` | All songs |
-| POST   | `/api/songs` | Register a song `{title, artist, genre, vocals[], work, tags[], date, dur, views, url}` |
-| DELETE | `/api/songs/:id` | Delete a song |
-| POST   | `/api/songs/:id/play` | Record a sing (歌唱 +1) with today's date |
-| PUT    | `/api/songs/:id/favorite` | Toggle favorite |
-| GET    | `/api/playlists` | All playlists |
-| POST   | `/api/playlists` | Create `{name}` |
-| DELETE | `/api/playlists/:id` | Delete a playlist |
-| POST   | `/api/playlists/:id/songs` | Add a song `{songId}` |
-| DELETE | `/api/playlists/:id/songs/:songId` | Remove a song |
-| PUT    | `/api/settings` | Save `{theme}` |
-| GET    | `/api/youtube/search?q=` | YouTube candidates (mock or live) |
+| メソッド | パス | 目的 |
+|---------|------|------|
+| GET    | `/api/state` | 全データペイロード（曲、プレイリスト、お気に入り、設定） |
+| GET    | `/api/songs` | すべての曲 |
+| POST   | `/api/songs` | 曲を登録 `{title, artist, genre, vocals[], work, tags[], date, dur, views, url}` |
+| DELETE | `/api/songs/:id` | 曲を削除 |
+| POST   | `/api/songs/:id/play` | 歌唱を記録（歌唱 +1）、本日の日付で |
+| PUT    | `/api/songs/:id/favorite` | お気に入り切り替え |
+| GET    | `/api/playlists` | すべてのプレイリスト |
+| POST   | `/api/playlists` | プレイリスト作成 `{name}` |
+| DELETE | `/api/playlists/:id` | プレイリスト削除 |
+| POST   | `/api/playlists/:id/songs` | 曲を追加 `{songId}` |
+| DELETE | `/api/playlists/:id/songs/:songId` | 曲を削除 |
+| PUT    | `/api/settings` | 設定を保存 `{theme}` |
+| GET    | `/api/youtube/search?q=` | YouTube 候補（モックまたは実際） |
 
-## Data model
+## データモデル
 
 - **songs** — `id, title, artist, genre, vocals[] (JSON), work, tags[] (JSON), date, dur, views, plays, url, last_played, created`
-- **sings** — one row per sing event (`song_id, date`) → powers the heatmap / daily / top-songs charts
+- **sings** — 歌唱イベント 1 行（`song_id, date`） → ヒートマップ / 日別 / トップ曲 チャートのデータ源
 - **favorites** — `song_id`
-- **playlists** — `id, name, en, colors[] (JSON)` + **playlist_songs** join (`playlist_id, song_id, position`)
-- **settings** — key/value (currently `theme`)
+- **playlists** — `id, name, en, colors[] (JSON)` + **playlist_songs** 結合テーブル（`playlist_id, song_id, position`）
+- **settings** — キー / バリュー（現在は `theme` のみ）
 
-## Mobile note
+## モバイル対応について
 
-The design is desktop-first but structured for later mobile work (sidebar + main,
-responsive `auto-fill` grids). Responsive breakpoints are the natural next step.
+デザインはデスクトップファーストですが、後のモバイル対応を視野に入れて実装されています（サイドバー + メインレイアウト、レスポンシブ `auto-fill` グリッド）。レスポンシブブレークポイントの追加が次のステップです。
 
-## Connecting real YouTube data
+## YouTube リアルデータの接続
 
-`backend/src/youtube.js` already implements the live path: with `YOUTUBE_API_KEY`
-set it calls `search.list` + `videos.list`, maps results to the candidate shape
-(title, channel, views, publish date, duration, thumbnail, video URL), and the
-register flow stores the real video URL so 曲名クリック opens the actual video.
-```
+`backend/src/youtube.js` には既にライブパスが実装されています：`YOUTUBE_API_KEY` を設定すると、`search.list` + `videos.list` を呼び出し、結果を候補フォーマット（タイトル、チャンネル、視聴数、投稿日、長さ、サムネイル、動画 URL）にマップします。登録フローは実際の動画 URL を保存するため、曲名クリックで実際の YouTube 動画が開きます。
