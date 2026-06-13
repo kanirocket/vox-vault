@@ -162,9 +162,14 @@ async function saveSong() {
   const sel = state.regSelected;
   if (!sel) return;
   const pv = (str) => { const m = String(str || '0').match(/(\d+\.?\d*)(万)?/); return m ? Math.round(parseFloat(m[1]) * (m[2] ? 10000 : 1)) : 0; };
+  // Auto-commit any artist name typed in the input field but not yet confirmed with Enter
+  const pendingArtist = _artistInputVal.trim();
+  const allArtists = [...state.regArtists];
+  if (pendingArtist && !allArtists.includes(pendingArtist)) allArtists.push(pendingArtist);
+  if (!allArtists.length) { showToast('アーティスト名を入力してください', 'error'); return; }
   const payload = {
     title: state.regTitle.trim() || sel.title,
-    artists: [...state.regArtists],
+    artists: allArtists,
     genre: state.regGenre,
     vocals: [...state.regVocals], work: state.regWork, tags: [...state.regTags],
     date: String(sel.date || '').replace(/\./g, '-'), dur: sel.dur, views: pv(sel.views), url: sel.url || '',
