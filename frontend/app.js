@@ -12,6 +12,8 @@ const GENRES = {
   artist:   { label: 'アーティスト', en: 'ARTIST',   color: '#b18cff' },
   game:     { label: 'ゲーム',       en: 'GAME',     color: '#ffd24a' },
 };
+const PRESET_VOCALS = ['初音ミク', '鏡音リン', '鏡音レン', '巡音ルカ', 'KAITO', 'MEIKO', 'IA', '可不', 'flower', '重音テト', 'GUMI', '結月ゆかり', '東北きりたん', 'Synthesizer V'];
+
 const THEMES = {
   holo: { '--accent': '#22d3ee', '--accent3': '#a78bfa', '--glow': 'rgba(34,211,238,.28)', '--glow2': 'rgba(232,121,249,.22)', '--bg': '#05060f' },
   neon: { '--accent': '#ff2d95', '--accent3': '#7b5bff', '--glow': 'rgba(255,45,149,.30)', '--glow2': 'rgba(0,229,255,.20)',  '--bg': '#0a0410' },
@@ -40,7 +42,7 @@ const state = {
   creatingList: false, newListName: '', toast: null,
   regStep: 1, regQuery: '', regSelected: null,
   regTitle: '', regArtists: [],
-  regGenre: 'vocaloid', regVocals: [], regTags: [], regWork: '',
+  regGenre: 'vocaloid', regVocals: [], regTags: [], regWork: '', regArtistQ: '',
   regCandidates: [], regLoading: false, regSource: null,
   unsingPending: null,
 };
@@ -204,6 +206,7 @@ function decorate(s) {
     starFill: fav ? g.color : 'none',
     starStroke: fav ? g.color : 'rgba(255,255,255,.35)',
     starStyle: { filter: fav ? `drop-shadow(0 0 6px ${g.color})` : 'none', transition: 'all .15s' },
+    artists: Array.isArray(s.artists) && s.artists.length ? s.artists : (s.artist ? [s.artist] : []),
     isPending: state.deletePending === s.id,
     url: s.url || `https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + ' ' + s.artist)}`,
   };
@@ -437,7 +440,7 @@ function libraryHTML() {
         <div style="min-width:0;">
           <button data-act="open" data-id="${s.id}" data-hover="title" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:none;cursor:pointer;color:#fff;padding:0;text-align:left;max-width:100%;transition:color .15s;" title="YouTubeで開く">${esc(s.title)}</button>
           <div style="display:flex;align-items:center;gap:7px;margin-top:2px;min-width:0;">
-            <span style="font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.artist)}</span>
+            ${s.artists.length > 1 ? `<div style="display:flex;flex-wrap:wrap;gap:4px;min-width:0;">${s.artists.map((a) => `<span style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;">${esc(a)}</span>`).join('')}</div>` : `<span style="font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.artist)}</span>`}
             ${s.hasDetail ? `<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);padding:1px 5px;border-radius:4px;border:1px solid var(--accent);flex-shrink:0;opacity:.8;">${esc(s.detailLabel)}</span><span style="font-size:12px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.detailText)}</span>` : ''}
           </div>
           ${tagChipsHTML(s, 5)}
@@ -490,7 +493,7 @@ function gridCardHTML(s, opt) {
       </div>
       <div style="padding:12px 14px 14px;">
         <button data-act="open" data-id="${s.id}" data-hover="title" style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:none;cursor:pointer;color:#fff;padding:0;text-align:left;width:100%;transition:color .15s;" title="YouTubeで開く">${esc(s.title)}</button>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.artist)}</div>
+        ${s.artists.length > 1 ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${s.artists.map((a) => `<span style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;">${esc(a)}</span>`).join('')}</div>` : `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.artist)}</div>`}
         ${s.hasDetail ? `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0;"><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);padding:1px 5px;border-radius:4px;border:1px solid var(--accent);opacity:.8;flex-shrink:0;">${esc(s.detailLabel)}</span><span style="font-size:11px;color:rgba(255,255,255,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.detailText)}</span></div>` : ''}
         ${tagChipsHTML(s, 7)}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
@@ -597,11 +600,25 @@ function registerHTML() {
     const knownWorks    = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
     const knownTags     = [...new Set(state.songs.flatMap((x) => x.tags || []).filter(Boolean))].sort();
     const knownArtists  = [...new Set(state.songs.flatMap((x) => x.artists || (x.artist ? [x.artist] : [])).filter(Boolean))].sort();
-    const datalists = `
-      <datalist id="vv-vocals">${knownVocals.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
-      <datalist id="vv-works">${knownWorks.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
-      <datalist id="vv-tags">${knownTags.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
-      <datalist id="vv-artists">${knownArtists.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>`;
+    const suggChip = (v, act) => `<button data-act="${act}" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);white-space:nowrap;">${esc(v)}</button>`;
+    // Vocals: preset list merged with library history, show all as chips
+    const allVocals   = [...new Set([...PRESET_VOCALS, ...knownVocals])];
+    const quickVocals = allVocals.filter((v) => !st.regVocals.includes(v));
+    const quickTags   = knownTags.filter((v) => !st.regTags.includes(v)).slice(0, 10);
+    // Artists: typeahead — show matches while typing, show recent when empty
+    const artistQ = (st.regArtistQ || '').trim().toLowerCase();
+    const artistMatches = artistQ
+      ? knownArtists.filter((v) => !st.regArtists.includes(v) && v.toLowerCase().includes(artistQ)).slice(0, 8)
+      : knownArtists.filter((v) => !st.regArtists.includes(v)).slice(0, 6);
+    // Works: typeahead — filter by what's typed, show recent when empty
+    const workQ = (st.regWork || '').trim().toLowerCase();
+    const workMatches = workQ
+      ? knownWorks.filter((v) => v.toLowerCase().includes(workQ) && v !== st.regWork).slice(0, 6)
+      : knownWorks.slice(0, 6);
+    const vocalSuggHTML  = quickVocals.length > 0   ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${quickVocals.map((v) => suggChip(v, 'quickAddVocal')).join('')}</div>` : '';
+    const tagSuggHTML    = quickTags.length > 0     ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${quickTags.map((v) => suggChip(v, 'quickAddTag')).join('')}</div>` : '';
+    const artistSuggHTML = artistMatches.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${artistMatches.map((v) => suggChip(v, 'quickAddArtist')).join('')}</div>` : '';
+    const workSuggHTML   = workMatches.length > 0   ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${workMatches.map((v) => { const active = st.regWork === v; return `<button data-act="quickSetWork" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,.18)'};background:${active ? 'rgba(34,211,238,.1)' : 'rgba(255,255,255,.05)'};color:${active ? 'var(--accent)' : 'rgba(255,255,255,.7)'};white-space:nowrap;">${esc(v)}</button>`; }).join('')}</div>` : '';
     const genreOpts = Object.keys(G).map((k) => {
       const on = st.regGenre === k;
       return `<button data-act="regGenre" data-genre="${k}" style="${css({ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', padding: '10px 6px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 700, border: on ? '1px solid ' + G[k].color : '1px solid rgba(255,255,255,.1)', background: on ? G[k].color + '1f' : 'rgba(0,0,0,.25)', color: on ? G[k].color : 'rgba(255,255,255,.5)', boxShadow: on ? '0 0 14px ' + G[k].color + '44' : 'none' })}"><span style="${css({ width: '7px', height: '7px', borderRadius: '50%', background: G[k].color, boxShadow: '0 0 7px ' + G[k].color })}"></span>${G[k].label}</button>`;
@@ -635,8 +652,9 @@ function registerHTML() {
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">アーティスト（複数可）</label>
               <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;min-height:44px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
                 ${artistChips}
-                <input data-act="addArtist" list="vv-artists" placeholder="名前を入力しEnterで追加" style="flex:1;min-width:120px;background:none;border:none;color:#fff;font-size:13px;"/>
+                <input data-act="addArtist" data-field="addArtistQ" value="${esc(st.regArtistQ || '')}" placeholder="名前を入力しEnterで追加" style="flex:1;min-width:120px;background:none;border:none;color:#fff;font-size:13px;"/>
               </div>
+              ${artistSuggHTML}
             </div>
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">ジャンル</label>
@@ -647,22 +665,25 @@ function registerHTML() {
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">歌唱ボカロ（複数可）</label>
               <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;min-height:44px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
                 ${vocalChips}
-                <input data-act="addVocal" list="vv-vocals" placeholder="名前を入力しEnterで追加" style="flex:1;min-width:110px;background:none;border:none;color:#fff;font-size:12px;"/>
+                <input data-act="addVocal" placeholder="名前を入力しEnterで追加" style="flex:1;min-width:110px;background:none;border:none;color:#fff;font-size:12px;"/>
               </div>
+              ${vocalSuggHTML}
             </div>` : ''}
             ${st.regGenre === 'anime' ? `
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">作品名</label>
               <div style="margin-top:7px;padding:2px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
-                <input data-field="regWork" data-act="regWork" list="vv-works" value="${esc(st.regWork)}" placeholder="例：TVアニメ「…」" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
+                <input data-field="regWork" data-act="regWork" value="${esc(st.regWork)}" placeholder="例：TVアニメ「…」" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
               </div>
+              ${workSuggHTML}
             </div>` : ''}
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">タグ（複数可）<span style="opacity:.5;font-size:9px;margin-left:8px;">例：バラード 高音</span></label>
               <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;min-height:44px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
                 ${tagChips}
-                <input data-act="addTag" list="vv-tags" placeholder="タグを入力しEnterで追加" style="flex:1;min-width:110px;background:none;border:none;color:#fff;font-size:12px;"/>
+                <input data-act="addTag" placeholder="タグを入力しEnterで追加" style="flex:1;min-width:110px;background:none;border:none;color:#fff;font-size:12px;"/>
               </div>
+              ${tagSuggHTML}
             </div>
             <div style="display:flex;gap:10px;margin-top:4px;">
               <button data-act="backStep2" style="padding:13px 22px;border-radius:11px;background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-weight:700;font-size:13px;cursor:pointer;">← 候補に戻る</button>
@@ -671,7 +692,7 @@ function registerHTML() {
           </div>
         </div>
       </div>
-      ${datalists}`;
+`;
   } else if (st.regStep === 4) {
     const sel = st.regSelected || {};
     panel = `
@@ -979,13 +1000,17 @@ document.addEventListener('click', (e) => {
     case 'startSearch': startSearch(); break;
     case 'backStep1': setState({ regStep: 1 }); break;
     case 'backStep2': setState({ regStep: 2 }); break;
-    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [], regWork: '' }); break; }
+    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [], regWork: '', regArtistQ: '' }); break; }
     case 'regGenre': setState({ regGenre: t.dataset.genre }); break;
     case 'rmArtist': { const idx = +t.dataset.idx; setState((s) => ({ regArtists: s.regArtists.filter((_, j) => j !== idx) })); break; }
     case 'rmVocal': { const idx = +t.dataset.idx; setState((s) => ({ regVocals: s.regVocals.filter((_, j) => j !== idx) })); break; }
     case 'rmTag': { const idx = +t.dataset.idx; setState((s) => ({ regTags: s.regTags.filter((_, j) => j !== idx) })); break; }
+    case 'quickAddArtist': { const val = t.dataset.val; if (val && !state.regArtists.includes(val)) setState((s) => ({ regArtists: [...s.regArtists, val], regArtistQ: '' })); break; }
+    case 'quickAddVocal': { const val = t.dataset.val; if (val && !state.regVocals.includes(val)) setState((s) => ({ regVocals: [...s.regVocals, val] })); break; }
+    case 'quickAddTag': { const val = t.dataset.val; if (val && !state.regTags.includes(val)) setState((s) => ({ regTags: [...s.regTags, val] })); break; }
+    case 'quickSetWork': setState({ regWork: t.dataset.val }); break;
     case 'saveSong': saveSong(); break;
-    case 'resetReg': setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regWork: '', regCandidates: [], regSource: null }); break;
+    case 'resetReg': setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regWork: '', regArtistQ: '', regCandidates: [], regSource: null }); break;
     // lists
     case 'openList': setState({ activeList: id }); break;
     case 'closeList': setState({ activeList: null }); break;
@@ -1010,7 +1035,8 @@ document.addEventListener('input', (e) => {
     // these fields don't change anything visible until submitted → update state silently
     case 'regQuery': state.regQuery = e.target.value; break;
     case 'regTitle': state.regTitle = e.target.value; break;
-    case 'regWork': state.regWork = e.target.value; break;
+    case 'addArtist': setState({ regArtistQ: e.target.value }); break;
+    case 'regWork': setState({ regWork: e.target.value }); break;
     case 'newListName': state.newListName = e.target.value; break;
     default: break;
   }
@@ -1024,7 +1050,7 @@ document.addEventListener('keydown', (e) => {
   else if (act === 'newListName' && e.key === 'Enter') { submitNewList(); }
   else if (act === 'addArtist' && e.key === 'Enter' && e.target.value.trim()) {
     const v = e.target.value.trim(); e.target.value = '';
-    setState((s) => ({ regArtists: [...s.regArtists, v] }));
+    setState((s) => ({ regArtists: [...s.regArtists, v], regArtistQ: '' }));
   } else if (act === 'addVocal' && e.key === 'Enter' && e.target.value.trim()) {
     const v = e.target.value.trim(); e.target.value = '';
     setState((s) => ({ regVocals: [...s.regVocals, v] }));
