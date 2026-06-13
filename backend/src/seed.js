@@ -46,16 +46,16 @@ export function seedIfEmpty(db) {
   if (count > 0) return;
 
   const insertSong = db.prepare(`
-    INSERT INTO songs (id, title, artist, genre, vocals, work, tags, date, dur, views, plays, url, created)
+    INSERT OR IGNORE INTO songs (id, title, artist, genre, vocals, work, tags, date, dur, views, plays, url, created)
     VALUES (@id, @title, @artist, @genre, @vocals, @work, @tags, @date, @dur, @views, @plays, @url, @created)
   `);
   const insertSing = db.prepare('INSERT INTO sings (song_id, date) VALUES (?, ?)');
   const insertFav = db.prepare('INSERT OR IGNORE INTO favorites (song_id) VALUES (?)');
   const insertList = db.prepare(
-    'INSERT INTO playlists (id, name, en, colors, created) VALUES (@id, @name, @en, @colors, @created)'
+    'INSERT OR IGNORE INTO playlists (id, name, en, colors, created) VALUES (@id, @name, @en, @colors, @created)'
   );
   const insertListSong = db.prepare(
-    'INSERT INTO playlist_songs (playlist_id, song_id, position) VALUES (?, ?, ?)'
+    'INSERT OR IGNORE INTO playlist_songs (playlist_id, song_id, position) VALUES (?, ?, ?)'
   );
 
   const seed = db.transaction(() => {

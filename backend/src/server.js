@@ -42,6 +42,10 @@ api.post('/songs', (req, res) => {
     : (b.artist ? [String(b.artist)] : []);
   const artistStr = artists.join(' / ');
   if (!b.title || !artistStr) return res.status(400).json({ error: 'title and artist are required' });
+  if (b.url) {
+    const dup = db.prepare('SELECT id, title FROM songs WHERE url = ?').get(String(b.url));
+    if (dup) return res.status(409).json({ error: 'duplicate', id: dup.id, title: dup.title });
+  }
   const genre = VALID_GENRES.includes(b.genre) ? b.genre : 'artist';
   const id = Date.now();
   db.prepare(`

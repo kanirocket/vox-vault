@@ -156,7 +156,14 @@ async function saveSong() {
     date: String(sel.date || '').replace(/\./g, '-'), dur: sel.dur, views: pv(sel.views), url: sel.url || '',
   };
   try {
-    const song = await api('/songs', { method: 'POST', body: JSON.stringify(payload) });
+    const r = await fetch('/api/songs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (r.status === 409) {
+      const err = await r.json().catch(() => ({}));
+      showToast(`すでに登録済みです：「${err.title || payload.title}」`, 'error');
+      return;
+    }
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+    const song = await r.json();
     setState((s) => ({ songs: [song, ...s.songs], regStep: 4 }));
     showToast(`「${song.title}」を VAULT に登録しました`);
   } catch (e) { showToast('登録に失敗しました', 'error'); }
