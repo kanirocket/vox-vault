@@ -1,0 +1,20 @@
+services:
+  vox-vault:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: vox-vault
+    container_name: vox-vault
+    ports:
+      - "4030:3000"
+    environment:
+      # Set this to enable real YouTube Data API v3 search.
+      # Without it, the register flow returns mock candidates (UI works fully).
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
+    volumes:
+      # Persist the SQLite database across rebuilds / restarts.
+      - vox-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  vox-data:

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VOX//VAULT — カラオケアーカイブ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:#04050c;}
+  @keyframes vvGrid{from{background-position:0 0;}to{background-position:0 -64px;}}
+  @keyframes vvFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(50px,-40px) scale(1.1);}}
+  @keyframes vvFloat2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-60px,40px) scale(1.15);}}
+  @keyframes vvScan{0%{transform:translateY(-120%);}100%{transform:translateY(120%);}}
+  @keyframes vvBlink{0%,100%{opacity:1;}50%{opacity:.2;}}
+  @keyframes vvFade{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+  @keyframes vvToast{0%{opacity:0;transform:translateY(12px);}12%{opacity:1;transform:none;}82%{opacity:1;transform:none;}100%{opacity:0;transform:translateY(-6px);}}
+  @keyframes vvPop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:none;}}
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
+  input{outline:none;}
+  input::placeholder{color:rgba(255,255,255,.28);}
+  button{font-family:inherit;}
+  /* hover states (the prototype used style-hover; reproduced via CSS) */
+  [data-hover="row"]:hover{background:rgba(255,255,255,.04);}
+  [data-hover="card"]:hover{border-color:var(--accent);box-shadow:0 0 26px var(--glow);transform:translateY(-3px);}
+  [data-hover="cand"]:hover{border-color:var(--accent);background:rgba(255,255,255,.06);box-shadow:0 0 24px var(--glow);}
+  [data-hover="title"]:hover{color:var(--accent);}
+  [data-hover="iconbtn"]:hover{background:rgba(255,255,255,.06);}
+  [data-hover="createcard"]:hover{border-color:var(--accent);color:#fff;box-shadow:0 0 26px var(--glow);}
+  [data-hover="dashbtn"]:hover{border-color:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
