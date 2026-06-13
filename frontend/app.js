@@ -14,8 +14,24 @@ const GENRES = {
 };
 const PRESET_VOCALS = ['初音ミク', '鏡音リン', '鏡音レン', '巡音ルカ', 'KAITO', 'MEIKO', 'IA', '可不', 'flower', '重音テト', 'GUMI', '結月ゆかり', '東北きりたん', 'Synthesizer V'];
 
-// Artist input value is tracked outside state so typing doesn't trigger a full re-render.
+// Artist / work input values tracked outside state so typing doesn't trigger a full re-render.
 let _artistInputVal = '';
+let _workInputVal = '';
+function updateWorkSugg() {
+  const el = document.getElementById('work-sugg');
+  if (!el) return;
+  const knownWorks = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
+  const q = _workInputVal.trim().toLowerCase();
+  const matches = q
+    ? knownWorks.filter((v) => v.toLowerCase().includes(q) && v !== _workInputVal).slice(0, 6)
+    : knownWorks.slice(0, 6);
+  el.innerHTML = matches.length > 0
+    ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${matches.map((v) => {
+        const active = _workInputVal === v;
+        return `<button data-act="quickSetWork" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,.18)'};background:${active ? 'rgba(34,211,238,.1)' : 'rgba(255,255,255,.05)'};color:${active ? 'var(--accent)' : 'rgba(255,255,255,.7)'};white-space:nowrap;">${esc(v)}</button>`;
+      }).join('')}</div>`
+    : '';
+}
 function updateArtistSugg() {
   const el = document.getElementById('artist-sugg');
   if (!el) return;
@@ -56,7 +72,7 @@ const state = {
   creatingList: false, newListName: '', toast: null,
   regStep: 1, regQuery: '', regSelected: null,
   regTitle: '', regArtists: [],
-  regGenre: 'vocaloid', regVocals: [], regTags: [], regWork: '',
+  regGenre: 'vocaloid', regVocals: [], regTags: [],
   regCandidates: [], regLoading: false, regSource: null,
   unsingPending: null,
 };
@@ -171,7 +187,7 @@ async function saveSong() {
     title: state.regTitle.trim() || sel.title,
     artists: allArtists,
     genre: state.regGenre,
-    vocals: [...state.regVocals], work: state.regWork, tags: [...state.regTags],
+    vocals: [...state.regVocals], work: _workInputVal, tags: [...state.regTags],
     date: String(sel.date || '').replace(/\./g, '-'), dur: sel.dur, views: pv(sel.views), url: sel.url || '',
   };
   try {
@@ -637,14 +653,14 @@ function registerHTML() {
       ? knownArtists.filter((v) => !st.regArtists.includes(v) && v.toLowerCase().includes(artistQ)).slice(0, 8)
       : knownArtists.filter((v) => !st.regArtists.includes(v)).slice(0, 6);
     // Works: typeahead — filter by what's typed, show recent when empty
-    const workQ = (st.regWork || '').trim().toLowerCase();
+    const workQ = _workInputVal.trim().toLowerCase();
     const workMatches = workQ
-      ? knownWorks.filter((v) => v.toLowerCase().includes(workQ) && v !== st.regWork).slice(0, 6)
+      ? knownWorks.filter((v) => v.toLowerCase().includes(workQ) && v !== _workInputVal).slice(0, 6)
       : knownWorks.slice(0, 6);
     const vocalSuggHTML  = quickVocals.length > 0   ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${quickVocals.map((v) => suggChip(v, 'quickAddVocal')).join('')}</div>` : '';
     const tagSuggHTML    = quickTags.length > 0     ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${quickTags.map((v) => suggChip(v, 'quickAddTag')).join('')}</div>` : '';
     const artistSuggHTML = `<div id="artist-sugg">${artistMatches.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${artistMatches.map((v) => suggChip(v, 'quickAddArtist')).join('')}</div>` : ''}</div>`;
-    const workSuggHTML   = workMatches.length > 0   ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${workMatches.map((v) => { const active = st.regWork === v; return `<button data-act="quickSetWork" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,.18)'};background:${active ? 'rgba(34,211,238,.1)' : 'rgba(255,255,255,.05)'};color:${active ? 'var(--accent)' : 'rgba(255,255,255,.7)'};white-space:nowrap;">${esc(v)}</button>`; }).join('')}</div>` : '';
+    const workSuggHTML   = `<div id="work-sugg">${workMatches.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${workMatches.map((v) => { const active = _workInputVal === v; return `<button data-act="quickSetWork" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid ${active ? 'var(--accent)' : 'rgba(255,255,255,.18)'};background:${active ? 'rgba(34,211,238,.1)' : 'rgba(255,255,255,.05)'};color:${active ? 'var(--accent)' : 'rgba(255,255,255,.7)'};white-space:nowrap;">${esc(v)}</button>`; }).join('')}</div>` : ''}</div>`;
     const genreOpts = Object.keys(G).map((k) => {
       const on = st.regGenre === k;
       return `<button data-act="regGenre" data-genre="${k}" style="${css({ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', padding: '10px 6px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 700, border: on ? '1px solid ' + G[k].color : '1px solid rgba(255,255,255,.1)', background: on ? G[k].color + '1f' : 'rgba(0,0,0,.25)', color: on ? G[k].color : 'rgba(255,255,255,.5)', boxShadow: on ? '0 0 14px ' + G[k].color + '44' : 'none' })}"><span style="${css({ width: '7px', height: '7px', borderRadius: '50%', background: G[k].color, boxShadow: '0 0 7px ' + G[k].color })}"></span>${G[k].label}</button>`;
@@ -699,7 +715,7 @@ function registerHTML() {
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">作品名</label>
               <div style="margin-top:7px;padding:2px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
-                <input data-field="regWork" data-act="regWork" value="${esc(st.regWork)}" placeholder="例：TVアニメ「…」" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
+                <input data-field="regWork" data-act="regWork" value="${esc(_workInputVal)}" placeholder="例：TVアニメ「…」" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
               </div>
               ${workSuggHTML}
             </div>` : ''}
@@ -1026,7 +1042,7 @@ document.addEventListener('click', (e) => {
     case 'startSearch': startSearch(); break;
     case 'backStep1': setState({ regStep: 1 }); break;
     case 'backStep2': setState({ regStep: 2 }); break;
-    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) { _artistInputVal = ''; setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [], regWork: '' }); } break; }
+    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) { _artistInputVal = ''; _workInputVal = ''; setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [] }); } break; }
     case 'regGenre': setState({ regGenre: t.dataset.genre }); break;
     case 'rmArtist': { const idx = +t.dataset.idx; setState((s) => ({ regArtists: s.regArtists.filter((_, j) => j !== idx) })); break; }
     case 'rmVocal': { const idx = +t.dataset.idx; setState((s) => ({ regVocals: s.regVocals.filter((_, j) => j !== idx) })); break; }
@@ -1034,9 +1050,9 @@ document.addEventListener('click', (e) => {
     case 'quickAddArtist': { const val = t.dataset.val; if (val && !state.regArtists.includes(val)) { _artistInputVal = ''; const inp = document.querySelector('[data-act="addArtist"]'); if (inp) inp.value = ''; setState((s) => ({ regArtists: [...s.regArtists, val] })); } break; }
     case 'quickAddVocal': { const val = t.dataset.val; if (val && !state.regVocals.includes(val)) setState((s) => ({ regVocals: [...s.regVocals, val] })); break; }
     case 'quickAddTag': { const val = t.dataset.val; if (val && !state.regTags.includes(val)) setState((s) => ({ regTags: [...s.regTags, val] })); break; }
-    case 'quickSetWork': setState({ regWork: t.dataset.val }); break;
+    case 'quickSetWork': { _workInputVal = t.dataset.val; const wi = document.querySelector('[data-act="regWork"]'); if (wi) wi.value = _workInputVal; updateWorkSugg(); break; }
     case 'saveSong': saveSong(); break;
-    case 'resetReg': _artistInputVal = ''; setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regWork: '', regCandidates: [], regSource: null }); break;
+    case 'resetReg': _artistInputVal = ''; _workInputVal = ''; setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regCandidates: [], regSource: null }); break;
     // lists
     case 'openList': setState({ activeList: id }); break;
     case 'closeList': setState({ activeList: null }); break;
@@ -1062,7 +1078,7 @@ document.addEventListener('input', (e) => {
     case 'regQuery': state.regQuery = e.target.value; break;
     case 'regTitle': state.regTitle = e.target.value; break;
     case 'addArtist': _artistInputVal = e.target.value; updateArtistSugg(); break;
-    case 'regWork': setState({ regWork: e.target.value }); break;
+    case 'regWork': _workInputVal = e.target.value; updateWorkSugg(); break;
     case 'newListName': state.newListName = e.target.value; break;
     default: break;
   }
