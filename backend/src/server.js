@@ -37,16 +37,21 @@ api.get('/songs', (_req, res) => res.json(allSongs()));
 
 api.post('/songs', (req, res) => {
   const b = req.body || {};
-  if (!b.title || !b.artist) return res.status(400).json({ error: 'title and artist are required' });
+  const artists = Array.isArray(b.artists) && b.artists.length
+    ? b.artists.map(String).filter(Boolean)
+    : (b.artist ? [String(b.artist)] : []);
+  const artistStr = artists.join(' / ');
+  if (!b.title || !artistStr) return res.status(400).json({ error: 'title and artist are required' });
   const genre = VALID_GENRES.includes(b.genre) ? b.genre : 'artist';
   const id = Date.now();
   db.prepare(`
-    INSERT INTO songs (id, title, artist, genre, vocals, work, tags, date, dur, views, plays, url, created)
-    VALUES (@id, @title, @artist, @genre, @vocals, @work, @tags, @date, @dur, @views, 0, @url, @created)
+    INSERT INTO songs (id, title, artist, artists, genre, vocals, work, tags, date, dur, views, plays, url, created)
+    VALUES (@id, @title, @artist, @artists, @genre, @vocals, @work, @tags, @date, @dur, @views, 0, @url, @created)
   `).run({
     id,
     title: String(b.title),
-    artist: String(b.artist),
+    artist: artistStr,
+    artists: JSON.stringify(artists),
     genre,
     vocals: JSON.stringify(Array.isArray(b.vocals) ? b.vocals : []),
     work: b.work ? String(b.work) : '',

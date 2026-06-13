@@ -28,6 +28,7 @@ db.exec(`
     views       INTEGER NOT NULL DEFAULT 0,
     plays       INTEGER NOT NULL DEFAULT 0,
     url         TEXT    NOT NULL DEFAULT '',
+    artists     TEXT    NOT NULL DEFAULT '[]',   -- JSON array; empty means fall back to artist column
     last_played INTEGER,
     created     INTEGER NOT NULL DEFAULT 0
   );
@@ -65,6 +66,9 @@ db.exec(`
   );
 `);
 
+// Migration: add artists column if this is an existing DB without it
+try { db.exec(`ALTER TABLE songs ADD COLUMN artists TEXT NOT NULL DEFAULT '[]'`); } catch {}
+
 seedIfEmpty(db);
 
 // ── serializers ────────────────────────────────────────────────────────────
@@ -87,6 +91,7 @@ export function serializeSong(row, favs) {
     views: row.views,
     plays: row.plays,
     url: row.url || '',
+    artists: (() => { const a = JSON.parse(row.artists || '[]'); return a.length ? a : (row.artist ? [row.artist] : []); })(),
     lastPlayed: row.last_played || null,
     sings: singsStmt.all(row.id).map((r) => ({ id: r.id, date: r.date })),
     favorite: isFav,

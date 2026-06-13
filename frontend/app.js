@@ -39,6 +39,7 @@ const state = {
   deletePending: null, addToListSong: null, activeList: null,
   creatingList: false, newListName: '', toast: null,
   regStep: 1, regQuery: '', regSelected: null,
+  regTitle: '', regArtists: [],
   regGenre: 'vocaloid', regVocals: [], regTags: [], regWork: '',
   regCandidates: [], regLoading: false, regSource: null,
   unsingPending: null,
@@ -146,7 +147,9 @@ async function saveSong() {
   if (!sel) return;
   const pv = (str) => { const m = String(str || '0').match(/(\d+\.?\d*)(万)?/); return m ? Math.round(parseFloat(m[1]) * (m[2] ? 10000 : 1)) : 0; };
   const payload = {
-    title: sel.title, artist: sel.artist, genre: state.regGenre,
+    title: state.regTitle.trim() || sel.title,
+    artists: [...state.regArtists],
+    genre: state.regGenre,
     vocals: [...state.regVocals], work: state.regWork, tags: [...state.regTags],
     date: String(sel.date || '').replace(/\./g, '-'), dur: sel.dur, views: pv(sel.views), url: sel.url || '',
   };
@@ -590,17 +593,20 @@ function registerHTML() {
       ? `position:absolute;inset:0;background-image:url('${esc(sel.thumb)}');background-size:cover;background-position:center;`
       : `position:absolute;inset:0;background:radial-gradient(130% 150% at 16% -10%,${selColor}88,transparent 56%),linear-gradient(135deg,#0b1126,#06070f);`;
     // Autocomplete candidates from existing library
-    const knownVocals = [...new Set(state.songs.flatMap((x) => x.vocals || []).filter(Boolean))].sort();
-    const knownWorks  = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
-    const knownTags   = [...new Set(state.songs.flatMap((x) => x.tags || []).filter(Boolean))].sort();
+    const knownVocals   = [...new Set(state.songs.flatMap((x) => x.vocals || []).filter(Boolean))].sort();
+    const knownWorks    = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
+    const knownTags     = [...new Set(state.songs.flatMap((x) => x.tags || []).filter(Boolean))].sort();
+    const knownArtists  = [...new Set(state.songs.flatMap((x) => x.artists || (x.artist ? [x.artist] : [])).filter(Boolean))].sort();
     const datalists = `
       <datalist id="vv-vocals">${knownVocals.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
       <datalist id="vv-works">${knownWorks.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
-      <datalist id="vv-tags">${knownTags.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>`;
+      <datalist id="vv-tags">${knownTags.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>
+      <datalist id="vv-artists">${knownArtists.map((v) => `<option value="${esc(v)}">`).join('')}</datalist>`;
     const genreOpts = Object.keys(G).map((k) => {
       const on = st.regGenre === k;
       return `<button data-act="regGenre" data-genre="${k}" style="${css({ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', padding: '10px 6px', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 700, border: on ? '1px solid ' + G[k].color : '1px solid rgba(255,255,255,.1)', background: on ? G[k].color + '1f' : 'rgba(0,0,0,.25)', color: on ? G[k].color : 'rgba(255,255,255,.5)', boxShadow: on ? '0 0 14px ' + G[k].color + '44' : 'none' })}"><span style="${css({ width: '7px', height: '7px', borderRadius: '50%', background: G[k].color, boxShadow: '0 0 7px ' + G[k].color })}"></span>${G[k].label}</button>`;
     }).join('');
+    const artistChips = st.regArtists.map((v, i) => `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px 4px 10px;border-radius:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);font-size:12px;font-weight:700;">${esc(v)}<button data-act="rmArtist" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:15px;padding:0;line-height:1;">×</button></span>`).join('');
     const vocalChips = st.regVocals.map((v, i) => `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px 4px 10px;border-radius:7px;background:var(--accent);color:#06070f;font-size:12px;font-weight:700;">${esc(v)}<button data-act="rmVocal" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:#06070f;font-size:15px;padding:0;line-height:1;">×</button></span>`).join('');
     const tagChips = st.regTags.map((t, i) => `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px 4px 9px;border-radius:7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);font-size:12px;">${esc(t)}<button data-act="rmTag" data-idx="${i}" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.55);font-size:15px;padding:0;line-height:1;">×</button></span>`).join('');
     panel = `
@@ -619,8 +625,19 @@ function registerHTML() {
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:14px;">
-            <div><label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">楽曲名</label><div style="margin-top:7px;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);font-size:15px;font-weight:700;">${esc(sel.title || '')}</div></div>
-            <div><label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">アーティスト</label><div style="margin-top:7px;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);font-size:14px;">${esc(sel.artist || '')}</div></div>
+            <div>
+              <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">楽曲名</label>
+              <div style="margin-top:7px;padding:2px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
+                <input data-field="regTitle" data-act="regTitle" value="${esc(st.regTitle)}" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:15px;font-weight:700;"/>
+              </div>
+            </div>
+            <div>
+              <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">アーティスト（複数可）</label>
+              <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;min-height:44px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
+                ${artistChips}
+                <input data-act="addArtist" list="vv-artists" placeholder="名前を入力しEnterで追加" style="flex:1;min-width:120px;background:none;border:none;color:#fff;font-size:13px;"/>
+              </div>
+            </div>
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">ジャンル</label>
               <div style="display:flex;gap:8px;margin-top:8px;">${genreOpts}</div>
@@ -962,12 +979,13 @@ document.addEventListener('click', (e) => {
     case 'startSearch': startSearch(); break;
     case 'backStep1': setState({ regStep: 1 }); break;
     case 'backStep2': setState({ regStep: 2 }); break;
-    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regVocals: [], regTags: [], regWork: '' }); break; }
+    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [], regWork: '' }); break; }
     case 'regGenre': setState({ regGenre: t.dataset.genre }); break;
+    case 'rmArtist': { const idx = +t.dataset.idx; setState((s) => ({ regArtists: s.regArtists.filter((_, j) => j !== idx) })); break; }
     case 'rmVocal': { const idx = +t.dataset.idx; setState((s) => ({ regVocals: s.regVocals.filter((_, j) => j !== idx) })); break; }
     case 'rmTag': { const idx = +t.dataset.idx; setState((s) => ({ regTags: s.regTags.filter((_, j) => j !== idx) })); break; }
     case 'saveSong': saveSong(); break;
-    case 'resetReg': setState({ regStep: 1, regQuery: '', regSelected: null, regVocals: [], regTags: [], regWork: '', regCandidates: [], regSource: null }); break;
+    case 'resetReg': setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regWork: '', regCandidates: [], regSource: null }); break;
     // lists
     case 'openList': setState({ activeList: id }); break;
     case 'closeList': setState({ activeList: null }); break;
@@ -991,6 +1009,7 @@ document.addEventListener('input', (e) => {
     case 'query': setState({ query: e.target.value }); break;
     // these fields don't change anything visible until submitted → update state silently
     case 'regQuery': state.regQuery = e.target.value; break;
+    case 'regTitle': state.regTitle = e.target.value; break;
     case 'regWork': state.regWork = e.target.value; break;
     case 'newListName': state.newListName = e.target.value; break;
     default: break;
@@ -1003,7 +1022,10 @@ document.addEventListener('keydown', (e) => {
   const act = t.dataset.act;
   if (act === 'regQuery' && e.key === 'Enter') { startSearch(); }
   else if (act === 'newListName' && e.key === 'Enter') { submitNewList(); }
-  else if (act === 'addVocal' && e.key === 'Enter' && e.target.value.trim()) {
+  else if (act === 'addArtist' && e.key === 'Enter' && e.target.value.trim()) {
+    const v = e.target.value.trim(); e.target.value = '';
+    setState((s) => ({ regArtists: [...s.regArtists, v] }));
+  } else if (act === 'addVocal' && e.key === 'Enter' && e.target.value.trim()) {
     const v = e.target.value.trim(); e.target.value = '';
     setState((s) => ({ regVocals: [...s.regVocals, v] }));
   } else if (act === 'addTag' && e.key === 'Enter' && e.target.value.trim()) {
