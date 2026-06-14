@@ -21,7 +21,7 @@ let _workInputVal = '';
 function updateWorkSugg() {
   const el = document.getElementById('work-sugg');
   if (!el) return;
-  const knownWorks = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
+  const knownWorks = [...new Set(state.songs.filter((x) => x.genre === 'anime' || x.genre === 'game').map((x) => x.work).filter(Boolean))].sort();
   const q = _workInputVal.trim().toLowerCase();
   const matches = q
     ? knownWorks.filter((v) => v.toLowerCase().includes(q) && v !== _workInputVal).slice(0, 6)
@@ -227,8 +227,8 @@ function decorate(s) {
   const fav = !!state.favs[s.id];
   const vocals = s.vocals || [];
   const tags = s.tags || [];
-  const detailLabel = s.genre === 'vocaloid' ? 'VOCAL' : (s.genre === 'anime' ? '作品' : '');
-  const detailText = s.genre === 'vocaloid' ? vocals.join('・') : (s.genre === 'anime' ? (s.work || '') : '');
+  const detailLabel = s.genre === 'vocaloid' ? 'VOCAL' : ((s.genre === 'anime' || s.genre === 'game') ? '作品' : '');
+  const detailText = s.genre === 'vocaloid' ? vocals.join('・') : ((s.genre === 'anime' || s.genre === 'game') ? (s.work || '') : '');
   const tagStyle = {
     display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: '6px',
     fontSize: '10.5px', fontFamily: "'Share Tech Mono',monospace", color: 'rgba(255,255,255,.6)',
@@ -651,7 +651,7 @@ function registerHTML() {
       : `position:absolute;inset:0;background:radial-gradient(130% 150% at 16% -10%,${selColor}88,transparent 56%),linear-gradient(135deg,#0b1126,#06070f);`;
     // Autocomplete candidates from existing library
     const knownVocals   = [...new Set(state.songs.flatMap((x) => x.vocals || []).filter(Boolean))].sort();
-    const knownWorks    = [...new Set(state.songs.filter((x) => x.genre === 'anime').map((x) => x.work).filter(Boolean))].sort();
+    const knownWorks    = [...new Set(state.songs.filter((x) => x.genre === 'anime' || x.genre === 'game').map((x) => x.work).filter(Boolean))].sort();
     const knownTags     = [...new Set(state.songs.flatMap((x) => x.tags || []).filter(Boolean))].sort();
     const knownArtists  = [...new Set(state.songs.flatMap((x) => x.artists || (x.artist ? [x.artist] : [])).filter(Boolean))].sort();
     const suggChip = (v, act) => `<button data-act="${act}" data-val="${esc(v)}" style="padding:3px 9px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);white-space:nowrap;">${esc(v)}</button>`;
@@ -723,11 +723,11 @@ function registerHTML() {
               </div>
               ${vocalSuggHTML}
             </div>` : ''}
-            ${st.regGenre === 'anime' ? `
+            ${(st.regGenre === 'anime' || st.regGenre === 'game') ? `
             <div>
               <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">作品名</label>
               <div style="margin-top:7px;padding:2px 14px;border-radius:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);">
-                <input data-field="regWork" data-act="regWork" value="${esc(_workInputVal)}" placeholder="例：TVアニメ「…」" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
+                <input data-field="regWork" data-act="regWork" value="${esc(_workInputVal)}" placeholder="${st.regGenre === 'game' ? '例：ゲーム「…」' : '例：TVアニメ「…」'}" style="width:100%;padding:10px 0;background:none;border:none;color:#fff;font-size:13px;"/>
               </div>
               ${workSuggHTML}
             </div>` : ''}
