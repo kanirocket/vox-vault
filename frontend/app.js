@@ -68,7 +68,7 @@ const api = (path, opts) =>
 const state = {
   screen: 'library', theme: 'holo',
   songs: [], lists: [], favs: {},
-  filter: 'all', sortKey: 'added', sortDir: 'desc', query: '', view: 'list',
+  filter: 'all', sortKey: 'added', sortDir: 'desc', query: '', view: 'list', artistFilter: null,
   deletePending: null, addToListSong: null, activeList: null,
   creatingList: false, newListName: '', toast: null,
   regStep: 1, regQuery: '', regSelected: null,
@@ -263,6 +263,7 @@ const ICON = {
   trash: (w) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>`,
   star: (w, s) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="${s.starFill}" stroke="${s.starStroke}" stroke-width="1.6" style="${css(s.starStyle)}"><polygon points="12 2.5 15.1 9 22 9.7 16.8 14.4 18.3 21 12 17.4 5.7 21 7.2 14.4 2 9.7 8.9 9"/></svg>`,
   search: (w, stroke) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>`,
+  mic: (w) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>`,
 };
 
 // rating stars: clickable (id given) or display-only (no id)
@@ -423,6 +424,7 @@ function libDerived() {
   const st = state;
   let lib = st.songs.slice();
   if (st.filter !== 'all') lib = lib.filter((s) => s.genre === st.filter);
+  if (st.artistFilter) lib = lib.filter((s) => (Array.isArray(s.artists) && s.artists.length ? s.artists : [s.artist]).includes(st.artistFilter));
   if (st.query.trim()) {
     const q = st.query.trim().toLowerCase();
     lib = lib.filter((s) => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q));
@@ -482,16 +484,17 @@ function libraryHTML() {
     const rowStyle = css({ display: 'grid', gridTemplateColumns: gc, alignItems: 'center', gap: '16px', padding: '11px 20px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' });
     const rows = lib.map((s) => `
       <div data-hover="row" style="${rowStyle}">
-        <div style="position:relative;width:96px;height:54px;border-radius:7px;overflow:hidden;border:1px solid rgba(255,255,255,.1);">
+        <button data-act="open" data-id="${s.id}" style="position:relative;width:96px;height:54px;border-radius:7px;overflow:hidden;border:1px solid rgba(255,255,255,.1);cursor:pointer;padding:0;background:none;flex-shrink:0;" title="YouTubeで開く">
           <div style="${css(s.thumbStyle)}"></div>
           ${s.thumbImg ? `<img src="${s.thumbImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">` : ''}
-          <button data-act="play" data-id="${s.id}" style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.3);border:none;cursor:pointer;opacity:0;transition:opacity .15s;" title="歌唱 +1" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">${ICON.play(18)}</button>
           <span style="position:absolute;right:4px;bottom:3px;font-family:'Share Tech Mono',monospace;font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.7);color:#fff;">${esc(s.dur)}</span>
-        </div>
+        </button>
         <div style="min-width:0;">
           <button data-act="open" data-id="${s.id}" data-hover="title" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:none;cursor:pointer;color:#fff;padding:0;text-align:left;max-width:100%;transition:color .15s;" title="YouTubeで開く">${esc(s.title)}</button>
           <div style="display:flex;align-items:center;gap:7px;margin-top:2px;min-width:0;">
-            ${s.artists.length > 1 ? `<div style="display:flex;flex-wrap:wrap;gap:4px;min-width:0;">${s.artists.map((a) => `<span style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;">${esc(a)}</span>`).join('')}</div>` : `<span style="font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.artist)}</span>`}
+            ${s.artists.length > 1
+              ? `<div style="display:flex;flex-wrap:wrap;gap:4px;min-width:0;">${s.artists.map((a) => `<button data-act="filterArtist" data-artist="${esc(a)}" style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;cursor:pointer;font-family:inherit;transition:color .15s;">${esc(a)}</button>`).join('')}</div>`
+              : `<button data-act="filterArtist" data-artist="${esc(s.artist)}" style="font-size:12px;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s;">${esc(s.artist)}</button>`}
             ${s.hasDetail ? `<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);padding:1px 5px;border-radius:4px;border:1px solid var(--accent);flex-shrink:0;opacity:.8;">${esc(s.detailLabel)}</span><span style="font-size:12px;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.detailText)}</span>` : ''}
           </div>
           ${tagChipsHTML(s, 5)}
@@ -507,6 +510,7 @@ function libraryHTML() {
                <button data-act="confirmDel" data-id="${s.id}" title="確認" style="background:rgba(255,80,80,.2);border:1px solid rgba(255,100,100,.5);color:#fff;border-radius:6px;cursor:pointer;padding:4px 7px;font-size:11px;font-weight:700;">✓</button>
                <button data-act="cancelDel" title="キャンセル" style="background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);border-radius:6px;cursor:pointer;padding:4px 7px;font-size:12px;">✕</button>`
             : `<button data-act="fav" data-id="${s.id}" data-hover="iconbtn" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;" title="お気に入り">${ICON.star(17, s)}</button>
+               <button data-act="play" data-id="${s.id}" data-hover="iconbtn" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:rgba(255,255,255,.35);" title="歌唱 +1">${ICON.mic(15)}</button>
                <button data-act="addToList" data-id="${s.id}" data-hover="iconbtn" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:rgba(255,255,255,.35);" title="リストに追加">${ICON.plus(15)}</button>
                <button data-act="startDel" data-id="${s.id}" data-hover="iconbtn" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:rgba(255,255,255,.3);" title="削除">${ICON.trash(14)}</button>`}
         </div>
@@ -529,7 +533,15 @@ function libraryHTML() {
   } else {
     listing = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(226px,1fr));gap:16px;">${lib.map((s) => gridCardHTML(s, { showGenre, withDelete: false, withPlays: true })).join('')}</div>`;
   }
-  return `<div style="animation:vvFade 200ms ease;">${toolbar}${listing}</div>`;
+  const artistBanner = st.artistFilter
+    ? `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);margin-bottom:14px;font-size:13px;">
+        <span style="color:rgba(255,255,255,.45);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;">ARTIST</span>
+        <span style="font-weight:700;">${esc(st.artistFilter)}</span>
+        <span style="color:rgba(255,255,255,.35);font-size:12px;">${lib.length} 件</span>
+        <button data-act="clearArtistFilter" style="margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.45);font-size:16px;padding:0 2px;line-height:1;" title="フィルターを解除">✕</button>
+      </div>`
+    : '';
+  return `<div style="animation:vvFade 200ms ease;">${toolbar}${artistBanner}${listing}</div>`;
 }
 
 // generic grid card (library grid / favorites)
@@ -537,16 +549,17 @@ function gridCardHTML(s, opt) {
   const showGenre = opt.showGenre;
   return `
     <div data-hover="card" style="border-radius:16px;overflow:hidden;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);transition:all .15s;">
-      <div style="position:relative;width:100%;height:${opt.h || 128}px;">
+      <button data-act="open" data-id="${s.id}" style="display:block;position:relative;width:100%;height:${opt.h || 128}px;padding:0;border:none;cursor:pointer;background:none;" title="YouTubeで開く">
         <div style="${css(s.thumbStyle)}"></div>
         ${s.thumbImg ? `<img src="${s.thumbImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">` : ''}
-        <button data-act="play" data-id="${s.id}" style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);border:none;cursor:pointer;opacity:0;transition:opacity .15s;" title="歌唱 +1" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">${ICON.play(opt.playSize || 24)}</button>
         <span style="position:absolute;right:6px;bottom:5px;font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 5px;border-radius:3px;background:rgba(0,0,0,.75);">${esc(s.dur)}</span>
         ${showGenre ? `<div style="position:absolute;left:8px;top:8px;"><span style="${css(s.badgeStyle)}"><span style="${css(s.dotStyle)}"></span>${esc(s.genreLabel)}</span></div>` : ''}
-      </div>
+      </button>
       <div style="padding:12px 14px 14px;">
         <button data-act="open" data-id="${s.id}" data-hover="title" style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:none;cursor:pointer;color:#fff;padding:0;text-align:left;width:100%;transition:color .15s;" title="YouTubeで開く">${esc(s.title)}</button>
-        ${s.artists.length > 1 ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${s.artists.map((a) => `<span style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;">${esc(a)}</span>`).join('')}</div>` : `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.artist)}</div>`}
+        ${s.artists.length > 1
+          ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${s.artists.map((a) => `<button data-act="filterArtist" data-artist="${esc(a)}" style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;cursor:pointer;font-family:inherit;transition:color .15s;">${esc(a)}</button>`).join('')}</div>`
+          : `<button data-act="filterArtist" data-artist="${esc(s.artist)}" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;width:100%;text-align:left;transition:color .15s;">${esc(s.artist)}</button>`}
         ${s.hasDetail ? `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0;"><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);padding:1px 5px;border-radius:4px;border:1px solid var(--accent);opacity:.8;flex-shrink:0;">${esc(s.detailLabel)}</span><span style="font-size:11px;color:rgba(255,255,255,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.detailText)}</span></div>` : ''}
         ${tagChipsHTML(s, 7)}
         <div style="display:flex;align-items:center;gap:4px;margin-top:8px;">${ratingHTML(s.rating, s.id)}</div>
@@ -556,6 +569,7 @@ function gridCardHTML(s, opt) {
             <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent);margin-right:4px;">${esc(s.playsF)}</span>
             <button data-act="addToList" data-id="${s.id}" data-hover="iconbtn" style="background:none;border:none;cursor:pointer;padding:3px;border-radius:5px;color:rgba(255,255,255,.35);" title="リスト追加">${ICON.plus(14)}</button>
             <button data-act="fav" data-id="${s.id}" style="background:none;border:none;cursor:pointer;padding:3px;" title="お気に入り">${ICON.star(16, s)}</button>
+            <button data-act="play" data-id="${s.id}" style="background:none;border:none;cursor:pointer;padding:3px;border-radius:5px;color:rgba(255,255,255,.35);" title="歌唱 +1">${ICON.mic(14)}</button>
           </div>
         </div>
       </div>
@@ -1049,6 +1063,8 @@ document.addEventListener('click', (e) => {
     case 'go': setState({ screen: t.dataset.screen, activeList: null }); break;
     case 'theme': setTheme(t.dataset.theme); break;
     case 'filter': setState({ filter: t.dataset.filter }); break;
+    case 'filterArtist': setState({ artistFilter: t.dataset.artist, screen: 'library' }); break;
+    case 'clearArtistFilter': setState({ artistFilter: null }); break;
     case 'view': setState({ view: t.dataset.view }); break;
     case 'sort': setState((s) => ({ sortKey: t.dataset.sort, sortDir: s.sortKey === t.dataset.sort ? (s.sortDir === 'asc' ? 'desc' : 'asc') : 'desc' })); break;
     case 'play': incPlays(id); break;
