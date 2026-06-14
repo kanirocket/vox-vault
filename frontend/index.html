@@ -10,6 +10,7 @@
 <style>
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;background:#04050c;}
+  #root{height:100%;}
   @keyframes vvGrid{from{background-position:0 0;}to{background-position:0 -64px;}}
   @keyframes vvFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(50px,-40px) scale(1.1);}}
   @keyframes vvFloat2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-60px,40px) scale(1.15);}}
@@ -25,7 +26,7 @@
   input{outline:none;}
   input::placeholder{color:rgba(255,255,255,.28);}
   button{font-family:inherit;}
-  /* hover states (the prototype used style-hover; reproduced via CSS) */
+  /* hover states (reproduced from the prototype's style-hover) */
   [data-hover="row"]:hover{background:rgba(255,255,255,.04);}
   [data-hover="card"]:hover{border-color:var(--accent);box-shadow:0 0 26px var(--glow);transform:translateY(-3px);}
   [data-hover="cand"]:hover{border-color:var(--accent);background:rgba(255,255,255,.06);box-shadow:0 0 24px var(--glow);}
@@ -36,7 +37,7 @@
 </style>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="./app.js"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

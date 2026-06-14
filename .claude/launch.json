@@ -7,6 +7,14 @@
       "runtimeArgs": ["start", "--prefix", "backend"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "vox-frontend-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
+      "port": 5173,
+      "autoPort": true,
+      "env": { "VITE_API_TARGET": "http://localhost:4030" }
     }
   ]
 }
