@@ -29,6 +29,7 @@ db.exec(`
     plays       INTEGER NOT NULL DEFAULT 0,
     url         TEXT    NOT NULL DEFAULT '',
     artists     TEXT    NOT NULL DEFAULT '[]',   -- JSON array; empty means fall back to artist column
+    rating      INTEGER,                         -- 1-5 star singability; NULL = never evaluated
     last_played INTEGER,
     created     INTEGER NOT NULL DEFAULT 0
   );
@@ -66,8 +67,9 @@ db.exec(`
   );
 `);
 
-// Migration: add artists column if this is an existing DB without it
+// Migrations for existing DBs
 try { db.exec(`ALTER TABLE songs ADD COLUMN artists TEXT NOT NULL DEFAULT '[]'`); } catch {}
+try { db.exec(`ALTER TABLE songs ADD COLUMN rating INTEGER`); } catch {}
 
 seedIfEmpty(db);
 
@@ -92,6 +94,7 @@ export function serializeSong(row, favs) {
     plays: row.plays,
     url: row.url || '',
     artists: (() => { const a = JSON.parse(row.artists || '[]'); return a.length ? a : (row.artist ? [row.artist] : []); })(),
+    rating: row.rating ?? null,
     lastPlayed: row.last_played || null,
     sings: singsStmt.all(row.id).map((r) => ({ id: r.id, date: r.date })),
     favorite: isFav,

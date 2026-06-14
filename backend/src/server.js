@@ -19,7 +19,7 @@ app.use(express.json());
 
 const api = express.Router();
 const today = () => new Date().toISOString().slice(0, 10);
-const GENRE_COLORS = { vocaloid: '#38e8ff', anime: '#ff5db1', artist: '#b18cff', game: '#ffd24a' };
+const GENRE_COLORS = { vocaloid: '#38e8ff', anime: '#ff5db1', artist: '#b18cff', game: '#ffd24a', bgm: '#1abc9c' };
 const VALID_GENRES = Object.keys(GENRE_COLORS);
 
 // ── full state (one call to hydrate the SPA) ────────────────────────────────
@@ -48,9 +48,10 @@ api.post('/songs', (req, res) => {
   }
   const genre = VALID_GENRES.includes(b.genre) ? b.genre : 'artist';
   const id = Date.now();
+  const rating = Number.isInteger(b.rating) && b.rating >= 1 && b.rating <= 5 ? b.rating : null;
   db.prepare(`
-    INSERT INTO songs (id, title, artist, artists, genre, vocals, work, tags, date, dur, views, plays, url, created)
-    VALUES (@id, @title, @artist, @artists, @genre, @vocals, @work, @tags, @date, @dur, @views, 0, @url, @created)
+    INSERT INTO songs (id, title, artist, artists, genre, vocals, work, tags, date, dur, views, plays, url, rating, created)
+    VALUES (@id, @title, @artist, @artists, @genre, @vocals, @work, @tags, @date, @dur, @views, 0, @url, @rating, @created)
   `).run({
     id,
     title: String(b.title),
@@ -64,6 +65,7 @@ api.post('/songs', (req, res) => {
     dur: b.dur ? String(b.dur) : '',
     views: Number.isFinite(+b.views) ? Math.round(+b.views) : 0,
     url: b.url ? String(b.url) : '',
+    rating,
     created: id,
   });
   res.status(201).json(getSong(id));
@@ -97,6 +99,16 @@ api.delete('/songs/:id/sings/:singId', (req, res) => {
   if (!existing) return res.status(404).json({ error: 'sing not found' });
   db.prepare('DELETE FROM sings WHERE id = ?').run(singId);
   db.prepare('UPDATE songs SET plays = MAX(0, plays - 1) WHERE id = ?').run(id);
+  res.json(getSong(id));
+});
+
+// update singability rating (1-5 or null to clear)
+api.put('/songs/:id/rating', (req, res) => {
+  const id = +req.params.id;
+  if (!getSong(id)) return res.status(404).json({ error: 'not found' });
+  const r = req.body?.rating;
+  const rating = Number.isInteger(r) && r >= 1 && r <= 5 ? r : null;
+  db.prepare('UPDATE songs SET rating = ? WHERE id = ?').run(rating, id);
   res.json(getSong(id));
 });
 

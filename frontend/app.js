@@ -11,6 +11,7 @@ const GENRES = {
   anime:    { label: 'アニソン',     en: 'ANIME',    color: '#ff5db1' },
   artist:   { label: 'アーティスト', en: 'ARTIST',   color: '#b18cff' },
   game:     { label: 'ゲーム',       en: 'GAME',     color: '#ffd24a' },
+  bgm:      { label: 'BGM',          en: 'BGM',      color: '#1abc9c' },
 };
 const PRESET_VOCALS = ['初音ミク', '鏡音リン', '鏡音レン', '巡音ルカ', 'KAITO', 'MEIKO', 'IA', '可不', 'flower', '重音テト', 'GUMI', '結月ゆかり', '東北きりたん', 'Synthesizer V'];
 
@@ -72,7 +73,7 @@ const state = {
   creatingList: false, newListName: '', toast: null,
   regStep: 1, regQuery: '', regSelected: null,
   regTitle: '', regArtists: [],
-  regGenre: 'vocaloid', regVocals: [], regTags: [],
+  regGenre: 'vocaloid', regVocals: [], regTags: [], regRating: null,
   regCandidates: [], regLoading: false, regSource: null,
   unsingPending: null,
 };
@@ -187,7 +188,7 @@ async function saveSong() {
     title: state.regTitle.trim() || sel.title,
     artists: allArtists,
     genre: state.regGenre,
-    vocals: [...state.regVocals], work: _workInputVal, tags: [...state.regTags],
+    vocals: [...state.regVocals], work: _workInputVal, tags: [...state.regTags], rating: state.regRating,
     date: String(sel.date || '').replace(/\./g, '-'), dur: sel.dur, views: pv(sel.views), url: sel.url || '',
   };
   try {
@@ -249,6 +250,7 @@ function decorate(s) {
     starStroke: fav ? g.color : 'rgba(255,255,255,.35)',
     starStyle: { filter: fav ? `drop-shadow(0 0 6px ${g.color})` : 'none', transition: 'all .15s' },
     artists: Array.isArray(s.artists) && s.artists.length ? s.artists : (s.artist ? [s.artist] : []),
+    rating: s.rating ?? null,
     isPending: state.deletePending === s.id,
     url: s.url || `https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + ' ' + s.artist)}`,
   };
@@ -262,6 +264,13 @@ const ICON = {
   star: (w, s) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="${s.starFill}" stroke="${s.starStroke}" stroke-width="1.6" style="${css(s.starStyle)}"><polygon points="12 2.5 15.1 9 22 9.7 16.8 14.4 18.3 21 12 17.4 5.7 21 7.2 14.4 2 9.7 8.9 9"/></svg>`,
   search: (w, stroke) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>`,
 };
+
+// rating stars: clickable (id given) or display-only (no id)
+const ratingHTML = (rating, id) =>
+  [1,2,3,4,5].map((n) => id
+    ? `<button data-act="rate" data-id="${id}" data-val="${n}" title="歌える度 ${n}" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 1px;line-height:1;color:${rating !== null && n <= rating ? 'var(--accent)' : 'rgba(255,255,255,.2)'};">★</button>`
+    : `<span style="font-size:12px;color:${rating !== null && n <= rating ? 'var(--accent)' : 'rgba(255,255,255,.2)'};">★</span>`
+  ).join('');
 
 // ════════════════════════════════════════════════════════════════════════════
 // RENDER
@@ -449,7 +458,7 @@ function libraryHTML() {
   const ar = (k) => (st.sortKey === k ? (st.sortDir === 'asc' ? '▲' : '▼') : '');
   const isListView = st.view === 'list';
   const vb = (on) => css({ padding: '7px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', transition: 'background .15s', background: on ? 'rgba(255,255,255,.14)' : 'transparent', color: on ? '#fff' : 'rgba(255,255,255,.4)', display: 'grid', placeItems: 'center' });
-  const gc = showGenre ? '96px 1fr 130px 104px 84px 76px 106px' : '96px 1fr 104px 84px 76px 106px';
+  const gc = showGenre ? '96px 1fr 130px 104px 84px 76px 76px 106px' : '96px 1fr 104px 84px 76px 76px 106px';
 
   const toolbar = `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px;flex-wrap:wrap;">
@@ -491,6 +500,7 @@ function libraryHTML() {
         <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(255,255,255,.6);">${esc(s.dateF)}</div>
         <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(255,255,255,.55);">${esc(s.viewsF)}</div>
         <button data-act="showUnsing" data-id="${s.id}" title="クリックで取り消し" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;">${esc(s.playsF)}</button>
+        <div style="display:flex;align-items:center;">${ratingHTML(s.rating, s.id)}</div>
         <div style="display:flex;align-items:center;gap:3px;justify-content:flex-end;">
           ${s.isPending
             ? `<span style="font-size:10px;color:rgba(255,100,100,.9);margin-right:2px;white-space:nowrap;">削除?</span>
@@ -510,6 +520,7 @@ function libraryHTML() {
           <button data-act="sort" data-sort="date" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-align:left;letter-spacing:1.5px;">投稿日 ${ar('date')}</button>
           <button data-act="sort" data-sort="views" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-align:left;letter-spacing:1.5px;">視聴 ${ar('views')}</button>
           <button data-act="sort" data-sort="plays" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-align:left;letter-spacing:1.5px;">歌唱 ${ar('plays')}</button>
+          <span>歌える度</span>
           <span></span>
         </div>
         ${rows}
@@ -538,7 +549,8 @@ function gridCardHTML(s, opt) {
         ${s.artists.length > 1 ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">${s.artists.map((a) => `<span style="font-size:11px;color:rgba(255,255,255,.65);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);white-space:nowrap;">${esc(a)}</span>`).join('')}</div>` : `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.artist)}</div>`}
         ${s.hasDetail ? `<div style="display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0;"><span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);padding:1px 5px;border-radius:4px;border:1px solid var(--accent);opacity:.8;flex-shrink:0;">${esc(s.detailLabel)}</span><span style="font-size:11px;color:rgba(255,255,255,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.detailText)}</span></div>` : ''}
         ${tagChipsHTML(s, 7)}
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:4px;margin-top:8px;">${ratingHTML(s.rating, s.id)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
           <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);">${esc(s.dateF)}</span>
           <div style="display:flex;gap:3px;align-items:center;">
             <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent);margin-right:4px;">${esc(s.playsF)}</span>
@@ -726,6 +738,18 @@ function registerHTML() {
                 <input data-act="addTag" placeholder="タグを入力しEnterで追加" style="flex:1;min-width:110px;background:none;border:none;color:#fff;font-size:12px;"/>
               </div>
               ${tagSuggHTML}
+            </div>
+            <div>
+              <label style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.45);">歌える度</label>
+              <div style="display:flex;align-items:center;gap:2px;margin-top:8px;">
+                ${[1,2,3,4,5].map((n) => {
+                  const filled = st.regRating !== null && n <= st.regRating;
+                  return `<button data-act="setRating" data-val="${n}" style="background:none;border:none;cursor:pointer;font-size:28px;padding:0 4px;line-height:1;color:${filled ? 'var(--accent)' : 'rgba(255,255,255,.15)'};">★</button>`;
+                }).join('')}
+                ${st.regRating !== null
+                  ? `<button data-act="setRating" data-val="0" style="background:none;border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,.4);margin-left:6px;font-family:inherit;">クリア</button>`
+                  : `<span style="font-size:12px;color:rgba(255,255,255,.3);margin-left:8px;">（未評価）</span>`}
+              </div>
             </div>
             <div style="display:flex;gap:10px;margin-top:4px;">
               <button data-act="backStep2" style="padding:13px 22px;border-radius:11px;background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-weight:700;font-size:13px;cursor:pointer;">← 候補に戻る</button>
@@ -1042,7 +1066,7 @@ document.addEventListener('click', (e) => {
     case 'startSearch': startSearch(); break;
     case 'backStep1': setState({ regStep: 1 }); break;
     case 'backStep2': setState({ regStep: 2 }); break;
-    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) { _artistInputVal = ''; _workInputVal = ''; setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [] }); } break; }
+    case 'selectCand': { const c = findCandidate(t.dataset.id); if (c) { _artistInputVal = ''; _workInputVal = ''; setState({ regSelected: c, regGenre: c.genre || 'artist', regStep: 3, regTitle: c.title || '', regArtists: c.artist ? [c.artist] : [], regVocals: [], regTags: [], regRating: null }); } break; }
     case 'regGenre': setState({ regGenre: t.dataset.genre }); break;
     case 'rmArtist': { const idx = +t.dataset.idx; setState((s) => ({ regArtists: s.regArtists.filter((_, j) => j !== idx) })); break; }
     case 'rmVocal': { const idx = +t.dataset.idx; setState((s) => ({ regVocals: s.regVocals.filter((_, j) => j !== idx) })); break; }
@@ -1051,8 +1075,18 @@ document.addEventListener('click', (e) => {
     case 'quickAddVocal': { const val = t.dataset.val; if (val && !state.regVocals.includes(val)) setState((s) => ({ regVocals: [...s.regVocals, val] })); break; }
     case 'quickAddTag': { const val = t.dataset.val; if (val && !state.regTags.includes(val)) setState((s) => ({ regTags: [...s.regTags, val] })); break; }
     case 'quickSetWork': { _workInputVal = t.dataset.val; const wi = document.querySelector('[data-act="regWork"]'); if (wi) wi.value = _workInputVal; updateWorkSugg(); break; }
+    case 'setRating': { const v = +t.dataset.val; setState({ regRating: (v === 0 || v === state.regRating) ? null : v }); break; }
+    case 'rate': {
+      const id = +t.dataset.id; const v = +t.dataset.val;
+      const song = state.songs.find((s) => s.id === id);
+      const newRating = song && song.rating === v ? null : v;
+      api(`/songs/${id}/rating`, { method: 'PUT', body: JSON.stringify({ rating: newRating }) })
+        .then((updated) => setState((s) => ({ songs: s.songs.map((x) => x.id === id ? { ...x, rating: updated.rating } : x) })))
+        .catch(() => showToast('評価の更新に失敗しました', 'error'));
+      break;
+    }
     case 'saveSong': saveSong(); break;
-    case 'resetReg': _artistInputVal = ''; _workInputVal = ''; setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regCandidates: [], regSource: null }); break;
+    case 'resetReg': _artistInputVal = ''; _workInputVal = ''; setState({ regStep: 1, regQuery: '', regSelected: null, regTitle: '', regArtists: [], regVocals: [], regTags: [], regRating: null, regCandidates: [], regSource: null }); break;
     // lists
     case 'openList': setState({ activeList: id }); break;
     case 'closeList': setState({ activeList: null }); break;
