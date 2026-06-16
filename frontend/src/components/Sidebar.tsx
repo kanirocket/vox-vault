@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useStore } from '../store';
+import { useIsMobile } from '../hooks';
 import { THEME_DEFS } from '../constants';
 import type { Screen, Theme } from '../types';
 
@@ -22,26 +23,60 @@ const NAV: { key: Screen; jp: string; en: string; icon: ReactNode }[] = [
 ];
 
 export function Sidebar() {
-  const { songs, favs, theme, screen, setScreen, setTheme } = useStore();
+  const { songs, favs, theme, screen, sidebarOpen, setScreen, setTheme, closeSidebar } = useStore();
+  const isMobile = useIsMobile();
+
   const total = songs.length;
   const favCount = Object.values(favs).filter(Boolean).length;
   const totalPlays = songs.reduce((a, s) => a + s.plays, 0);
 
+  const handleNav = (key: Screen) => {
+    setScreen(key);
+    if (isMobile) closeSidebar();
+  };
+
+  const baseStyle: CSSProperties = {
+    height: '100vh', display: 'flex', flexDirection: 'column',
+    padding: '26px 16px 18px',
+    background: 'rgba(10,12,24,.92)',
+    backdropFilter: 'blur(22px)',
+    borderRight: '1px solid rgba(255,255,255,.07)',
+  };
+
+  const sidebarStyle: CSSProperties = isMobile
+    ? {
+        ...baseStyle,
+        position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200,
+        width: 272,
+        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.28s cubic-bezier(.4,0,.2,1)',
+        boxShadow: sidebarOpen ? '4px 0 32px rgba(0,0,0,.6)' : 'none',
+      }
+    : {
+        ...baseStyle,
+        position: 'relative', zIndex: 5, width: 248, flexShrink: 0,
+      };
+
   return (
-    <aside style={{ position: 'relative', zIndex: 5, width: 248, flexShrink: 0, height: '100vh', display: 'flex', flexDirection: 'column', padding: '26px 16px 18px', background: 'rgba(10,12,24,.55)', backdropFilter: 'blur(22px)', borderRight: '1px solid rgba(255,255,255,.07)' }}>
+    <aside style={sidebarStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '0 6px 26px' }}>
         <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06070f" strokeWidth="2.4" strokeLinecap="round"><path d="M12 3v12" /><circle cx="9" cy="17" r="3" /><path d="M12 3l7 2v4" /></svg>
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16, letterSpacing: 1, lineHeight: 1 }}>VOX<span style={{ color: 'var(--accent)' }}>//</span>VAULT</div>
           <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, letterSpacing: 2.5, color: 'rgba(255,255,255,.4)', marginTop: 4 }}>KARAOKE ARCHIVE</div>
         </div>
+        {isMobile && (
+          <button onClick={closeSidebar} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.5)', padding: 6, borderRadius: 7, lineHeight: 1 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        )}
       </div>
       <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,.3)', padding: '0 12px 8px' }}>// NAVIGATION</div>
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {NAV.map((n) => (
-          <button key={n.key} style={navBtnStyle(screen === n.key)} onClick={() => setScreen(n.key)}>
+          <button key={n.key} style={navBtnStyle(screen === n.key)} onClick={() => handleNav(n.key)}>
             {n.icon}
             <div>
               <div style={{ fontSize: 13, fontWeight: 700 }}>{n.jp}</div>
