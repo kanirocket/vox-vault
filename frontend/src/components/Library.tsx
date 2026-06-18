@@ -49,7 +49,7 @@ export function Library() {
       {/* toolbar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
         {/* genre chips */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: isMobile ? 'auto' : 'visible', paddingBottom: isMobile ? 2 : 0 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: isMobile ? 'auto' : 'visible', ...(isMobile ? { marginLeft: -14, marginRight: -14, paddingLeft: 14, paddingRight: 14, paddingBottom: 2, scrollbarWidth: 'none' as const } : {}) }}>
           {CHIP_DEFS.map((c) => {
             const on = filter === c.key;
             return (
