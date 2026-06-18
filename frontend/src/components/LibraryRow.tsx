@@ -16,38 +16,38 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
   const isPending = deletePending === s.id;
 
   if (isMobile) {
+    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '3px 5px', borderRadius: 5, lineHeight: 1 } as const;
     return (
-      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
+      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
         {/* thumbnail */}
-        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 72, height: 40, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
+        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 64, height: 36, borderRadius: 5, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
           <div style={thumbBg(s.color)} />
           {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-          <span style={{ position: 'absolute', right: 3, bottom: 2, fontFamily: "'Share Tech Mono',monospace", fontSize: 8, padding: '1px 3px', borderRadius: 2, background: 'rgba(0,0,0,.7)', color: '#fff' }}>{s.dur}</span>
         </button>
-        {/* info */}
+        {/* info + inline actions */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', maxWidth: '100%', transition: 'color .15s', display: 'block' }}>{s.title}</button>
-          <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', display: 'block' }}>{s.artist}</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
-            <button onClick={() => showUnsing(s.id)} style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{s.playsF}</button>
-            <RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} />
+          {/* line 1: title + fav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ flex: 1, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', transition: 'color .15s' }}>{s.title}</button>
+            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={14} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.3)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
           </div>
-        </div>
-        {/* actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-          {isPending ? (
-            <>
-              <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 6, cursor: 'pointer', padding: '4px 8px', fontSize: 11, fontWeight: 700 }}>✓</button>
-              <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 6, cursor: 'pointer', padding: '4px 8px', fontSize: 12 }}>✕</button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => toggleFav(s.id)} data-hover="iconbtn" title="お気に入り" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5, borderRadius: 6 }}><StarIcon size={16} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 5px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
-              <button onClick={() => incPlays(s.id)} data-hover="iconbtn" title="歌唱 +1" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5, borderRadius: 6, color: 'rgba(255,255,255,.35)' }}><MicIcon size={14} /></button>
-              <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リストに追加" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5, borderRadius: 6, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={14} /></button>
-              <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} data-hover="iconbtn" title="削除" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5, borderRadius: 6, color: 'rgba(255,255,255,.25)' }}><TrashIcon size={13} /></button>
-            </>
-          )}
+          {/* line 2: artist + plays + actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
+            <button onClick={() => showUnsing(s.id)} style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>{s.playsF}</button>
+            {isPending ? (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 5, cursor: 'pointer', padding: '2px 7px', fontSize: 11, fontWeight: 700 }}>✓</button>
+                <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 5, cursor: 'pointer', padding: '2px 6px', fontSize: 11 }}>✕</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => incPlays(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><MicIcon size={13} /></button>
+                <button onClick={() => openAddToList(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={13} /></button>
+                <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} style={{ ...iconBtn, color: 'rgba(255,255,255,.22)' }}><TrashIcon size={12} /></button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
