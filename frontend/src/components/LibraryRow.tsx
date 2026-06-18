@@ -28,43 +28,43 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
   }, [menuOpen]);
 
   if (isMobile) {
-    // larger touch targets (~36px) for the inline actions
-    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: 8, lineHeight: 1, display: 'grid', placeItems: 'center', flexShrink: 0 } as const;
-    const menuItem = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '11px 14px', fontFamily: 'inherit', fontSize: 13, color: '#fff', textAlign: 'left' as const };
+    // larger touch targets for the inline actions
+    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 10, borderRadius: 8, lineHeight: 1, display: 'grid', placeItems: 'center', flexShrink: 0 } as const;
+    const menuItem = { display: 'flex', alignItems: 'center', gap: 11, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '13px 16px', fontFamily: 'inherit', fontSize: 14, color: '#fff', textAlign: 'left' as const };
     return (
-      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
+      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
         {/* thumbnail */}
-        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 64, height: 36, borderRadius: 5, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
+        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 96, height: 54, borderRadius: 7, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
           <div style={thumbBg(s.color)} />
           {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
         </button>
         {/* info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* line 1: title */}
-          <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ display: 'block', width: '100%', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', transition: 'color .15s' }}>{s.title}</button>
-          {/* line 2: artist + plays */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
-            <button onClick={() => showUnsing(s.id)} style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>{s.playsF}</button>
+          {/* line 1: title (no link) */}
+          <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff' }}>{s.title}</div>
+          {/* line 2: artist */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
+            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 15, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
           </div>
         </div>
         {/* actions */}
         {isPending ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 7, cursor: 'pointer', padding: '7px 12px', fontSize: 13, fontWeight: 700 }}>✓</button>
-            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 7, cursor: 'pointer', padding: '7px 11px', fontSize: 13 }}>✕</button>
+            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 7, cursor: 'pointer', padding: '9px 14px', fontSize: 15, fontWeight: 700 }}>✓</button>
+            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 7, cursor: 'pointer', padding: '9px 13px', fontSize: 15 }}>✕</button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={18} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={22} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
             {/* overflow menu */}
             <div ref={menuRef} style={{ position: 'relative' }}>
-              <button onClick={() => setMenuOpen((o) => !o)} title="メニュー" style={{ ...iconBtn, color: 'rgba(255,255,255,.5)' }}><MoreIcon size={18} /></button>
+              <button onClick={() => setMenuOpen((o) => !o)} title="メニュー" style={{ ...iconBtn, color: 'rgba(255,255,255,.5)' }}><MoreIcon size={22} /></button>
               {menuOpen && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 150, background: 'rgba(20,22,34,.98)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,.5)', overflow: 'hidden', zIndex: 20, animation: 'vvPop 120ms ease' }}>
-                  <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'var(--accent)' }}><MicIcon size={16} />歌唱 +1</button>
-                  <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} style={menuItem}><PlusIcon size={16} />リストに追加</button>
-                  <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'rgba(255,120,120,.95)' }}><TrashIcon size={15} />削除</button>
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 168, background: 'rgba(20,22,34,.98)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,.5)', overflow: 'hidden', zIndex: 20, animation: 'vvPop 120ms ease' }}>
+                  <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'var(--accent)' }}><MicIcon size={17} />歌唱 +1</button>
+                  <button onClick={() => { showUnsing(s.id); setMenuOpen(false); }} style={menuItem}><MicIcon size={17} /><span style={{ flex: 1 }}>歌唱回数</span><span style={{ fontFamily: "'Share Tech Mono',monospace", color: 'var(--accent)' }}>{s.playsF}</span></button>
+                  <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} style={menuItem}><PlusIcon size={17} />リストに追加</button>
+                  <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'rgba(255,120,120,.95)' }}><TrashIcon size={16} />削除</button>
                 </div>
               )}
             </div>
