@@ -1,8 +1,9 @@
+import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { GENRES } from '../constants';
 import { decorate, thumbBg, badgeStyle, dotStyle } from '../utils';
 import type { Playlist } from '../types';
-import { PlayIcon, PlusIcon, TrashIcon } from '../icons';
+import { PlayIcon, PlusIcon, SearchIcon, TrashIcon } from '../icons';
 
 function cover(l: Playlist, songIdToGenreColor: (id: number) => string | null): string[] {
   const cs = l.songIds.slice(0, 4).map(songIdToGenreColor).filter(Boolean) as string[];
@@ -11,13 +12,25 @@ function cover(l: Playlist, songIdToGenreColor: (id: number) => string | null): 
 }
 
 export function Playlists() {
-  const { songs, lists, favs, activeList, openList, closeList, deleteList, openCreateList, removeFromList, incPlays } = useStore();
+  const { songs, lists, favs, activeList, openList, closeList, deleteList, openCreateList, removeFromList, incPlays, toggleSongInList, registerForList } = useStore();
+  const [addQuery, setAddQuery] = useState('');
   const colorOf = (id: number) => {
     const s = songs.find((x) => x.id === id);
     return s ? (GENRES[s.genre] || GENRES.artist).color : null;
   };
 
   const activeListObj = lists.find((l) => l.id === activeList) || null;
+
+  // search existing library songs not yet in the active list
+  const q = addQuery.trim().toLowerCase();
+  const searchResults = useMemo(() => {
+    if (!activeListObj || !q) return [];
+    return songs
+      .filter((s) => !activeListObj.songIds.includes(s.id))
+      .filter((s) => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map((s) => decorate(s, favs));
+  }, [songs, activeListObj, q, favs]);
 
   if (activeListObj) {
     const detail = activeListObj.songIds
@@ -35,6 +48,41 @@ export function Playlists() {
             <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'var(--accent)', letterSpacing: 1 }}>{activeListObj.en} · {activeListObj.songIds.length}曲</div>
           </div>
         </div>
+
+        {/* search & add panel */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
+            <SearchIcon size={15} stroke="rgba(255,255,255,.45)" />
+            <input value={addQuery} onChange={(e) => setAddQuery(e.target.value)} placeholder="曲を検索してこのリストに追加" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 13 }} />
+            {addQuery && <button onClick={() => setAddQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', fontSize: 15, lineHeight: 1, padding: '0 2px' }}>✕</button>}
+          </div>
+          {q && (
+            <div style={{ marginTop: 8, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,.025)', border: '1px solid rgba(255,255,255,.07)' }}>
+              {searchResults.map((s) => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '9px 13px', borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                  <div style={{ position: 'relative', width: 52, height: 30, borderRadius: 5, overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,.1)' }}>
+                    <div style={thumbBg(s.color)} />
+                    {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.artist}</div>
+                  </div>
+                  <button onClick={() => { toggleSongInList(s.id, activeListObj.id); }} style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0, padding: '6px 11px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--accent)', background: 'rgba(255,255,255,.05)', border: '1px solid var(--accent)' }}><PlusIcon size={13} />追加</button>
+                </div>
+              ))}
+              {/* no existing match → register a new song */}
+              <button onClick={() => registerForList(activeListObj.id, addQuery)} data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 13px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', color: '#fff' }}>
+                <div style={{ width: 30, height: 30, borderRadius: 7, display: 'grid', placeItems: 'center', background: 'var(--accent)', flexShrink: 0 }}><PlusIcon size={16} /></div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>「{addQuery.trim()}」を新曲として登録</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)' }}>{searchResults.length > 0 ? 'リストに無い曲はこちらから' : '一致する曲がありません。登録後このリストに追加されます'}</div>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
         {detail.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))', gap: 16 }}>
             {detail.map((s) => (

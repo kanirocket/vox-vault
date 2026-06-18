@@ -51,6 +51,7 @@ interface Store {
   regCandidates: Candidate[];
   regLoading: boolean;
   regSource: SearchResult['source'] | null;
+  pendingListAdd: number | null; // list to auto-add a newly registered song to
 
   // actions
   boot: () => Promise<void>;
@@ -94,6 +95,7 @@ interface Store {
   selectCand: (cand: Candidate) => void;
   saveSong: (payload: SavePayload) => Promise<boolean>;
   resetReg: () => void;
+  registerForList: (listId: number, query: string) => void;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -127,6 +129,7 @@ export const useStore = create<Store>((set, get) => ({
   regCandidates: [],
   regLoading: false,
   regSource: null,
+  pendingListAdd: null,
 
   boot: async () => {
     try {
@@ -144,7 +147,7 @@ export const useStore = create<Store>((set, get) => ({
     toastTimer = setTimeout(() => set({ toast: null }), 2600);
   },
 
-  setScreen: (screen) => set({ screen, activeList: null, sidebarOpen: false }),
+  setScreen: (screen) => set((s) => ({ screen, activeList: null, sidebarOpen: false, pendingListAdd: screen === 'register' ? s.pendingListAdd : null })),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   closeSidebar: () => set({ sidebarOpen: false }),
   setTheme: (theme) => {
@@ -304,6 +307,20 @@ export const useStore = create<Store>((set, get) => ({
       const song = await api<Song>('/songs', { method: 'POST', body: JSON.stringify(payload) });
       set((s) => ({ songs: [song, ...s.songs], regStep: 4 }));
       get().showToast(`「${song.title}」を VAULT に登録しました`);
+      const listId = get().pendingListAdd;
+      if (listId != null) {
+        const list = get().lists.find((l) => l.id === listId);
+        if (list) {
+          try {
+            const updated = await api<Playlist>(`/playlists/${listId}/songs`, { method: 'POST', body: JSON.stringify({ songId: song.id }) });
+            set((s) => ({ lists: s.lists.map((l) => (l.id === listId ? updated : l)) }));
+            get().showToast(`「${list.name}」に追加しました`);
+          } catch {
+            get().showToast('リストへの追加に失敗しました', 'error');
+          }
+        }
+        set({ pendingListAdd: null });
+      }
       return true;
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
@@ -316,5 +333,9 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
   resetReg: () =>
-    set({ regStep: 1, regSelected: null, regCandidates: [], regSource: null, regLoading: false }),
+    set({ regStep: 1, regSelected: null, regCandidates: [], regSource: null, regLoading: false, pendingListAdd: null }),
+  registerForList: (listId, query) => {
+    set({ regStep: 1, regSelected: null, regCandidates: [], regSource: null, regLoading: false, pendingListAdd: listId, screen: 'register', activeList: null });
+    if (query.trim()) get().startSearch(query.trim());
+  },
 }));
