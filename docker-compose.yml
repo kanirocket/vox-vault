@@ -1,20 +1,38 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vox-vault-db
+    environment:
+      POSTGRES_DB:       voxvault
+      POSTGRES_USER:     voxvault
+      POSTGRES_PASSWORD: voxvault
+    volumes:
+      - vox-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voxvault -d voxvault"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
   vox-vault:
     build:
       context: .
       dockerfile: backend/Dockerfile
     image: vox-vault
     container_name: vox-vault
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "4030:3000"
     environment:
+      - PG_CONNECTION_STRING=postgresql://voxvault:voxvault@postgres:5432/voxvault
       # Set this to enable real YouTube Data API v3 search.
-      # Without it, the register flow returns mock candidates (UI works fully).
+      # Without it, the register flow scrapes YouTube or returns mock candidates.
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
-    volumes:
-      # Persist the SQLite database across rebuilds / restarts.
-      - vox-data:/app/data
     restart: unless-stopped
 
 volumes:
-  vox-data:
+  vox-pg-data:
