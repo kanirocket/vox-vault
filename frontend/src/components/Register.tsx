@@ -105,9 +105,22 @@ function Step1() {
   );
 }
 
+// Extract a YouTube video id from a watch / youtu.be / embed URL.
+function ytId(url?: string | null): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
 function Step2() {
-  const { regCandidates, regLoading, regSource, backStep, selectCand } = useStore();
+  const { regCandidates, regLoading, regSource, backStep, selectCand, songs } = useStore();
   const qShown = 'グリッチ・ハート';
+  // video ids already in the library
+  const registered = new Map<string, string>(); // videoId -> registered title
+  for (const s of songs) {
+    const id = ytId(s.url);
+    if (id) registered.set(id, s.title);
+  }
   return (
     <div style={{ animation: 'vvFade 180ms ease' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
@@ -129,19 +142,24 @@ function Step2() {
             const thumbBg = c.thumb
               ? { backgroundImage: `url('${c.thumb}')`, backgroundSize: 'cover', backgroundPosition: 'center' }
               : { background: `radial-gradient(130% 150% at 16% -10%,${color}88,transparent 56%),linear-gradient(135deg,#0b1126,#06070f)` };
+            const vid = c.videoId || ytId(c.url);
+            const isReg = vid != null && registered.has(vid);
             return (
-              <button key={c.videoId || c.title + i} onClick={() => selectCand(c)} data-hover="cand" style={{ display: 'grid', gridTemplateColumns: '148px 1fr auto', alignItems: 'center', gap: 16, textAlign: 'left', padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', cursor: 'pointer', transition: 'all .15s' }}>
+              <button key={c.videoId || c.title + i} onClick={() => !isReg && selectCand(c)} disabled={isReg} data-hover={isReg ? undefined : 'cand'} title={isReg ? 'すでにライブラリに登録済みです' : undefined} style={{ display: 'grid', gridTemplateColumns: '148px 1fr auto', alignItems: 'center', gap: 16, textAlign: 'left', padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', cursor: isReg ? 'not-allowed' : 'pointer', opacity: isReg ? 0.45 : 1, filter: isReg ? 'grayscale(1)' : 'none', transition: 'all .15s' }}>
                 <div style={{ position: 'relative', width: 148, height: 84, borderRadius: 9, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)' }}>
                   <div style={{ position: 'absolute', inset: 0, ...thumbBg }} />
                   <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}><PlayIcon size={22} /></div>
                   <span style={{ position: 'absolute', right: 5, bottom: 4, fontFamily: "'Share Tech Mono',monospace", fontSize: 10, padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,.75)' }}>{c.dur}</span>
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</span>
+                    {isReg && <span style={{ flexShrink: 0, fontFamily: "'Share Tech Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: '#ffd24a', background: 'rgba(255,200,0,.12)', border: '1px solid rgba(255,200,0,.4)', borderRadius: 5, padding: '2px 7px' }}>登録済み</span>}
+                  </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 3 }}>{c.channel}</div>
                   <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 5 }}>{c.views} 回視聴 · {c.published}</div>
                 </div>
-                <div style={{ padding: '0 8px', display: 'flex', alignItems: 'center', gap: 7, color: 'var(--accent)', fontFamily: "'Share Tech Mono',monospace", fontSize: 11 }}>選択<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg></div>
+                <div style={{ padding: '0 8px', display: 'flex', alignItems: 'center', gap: 7, color: isReg ? 'rgba(255,255,255,.4)' : 'var(--accent)', fontFamily: "'Share Tech Mono',monospace", fontSize: 11 }}>{isReg ? '登録済み' : <>選択<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg></>}</div>
               </button>
             );
           })
