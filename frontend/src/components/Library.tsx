@@ -4,7 +4,7 @@ import { useIsMobile } from '../hooks';
 import { GENRE_KEYS, GENRES } from '../constants';
 import { decorate } from '../utils';
 import type { Genre, SortKey } from '../types';
-import { SearchIcon } from '../icons';
+import { PlusIcon, SearchIcon } from '../icons';
 import { LibraryRow } from './LibraryRow';
 import { SongCard } from './SongCard';
 
@@ -15,7 +15,7 @@ const CHIP_DEFS: { key: 'all' | Genre; label: string; color: string }[] = [
 
 export function Library() {
   const { songs, favs, filter, sortKey, sortDir, query, view, artistFilter,
-    setFilter, setView, setQuery, toggleSort, clearArtistFilter } = useStore();
+    setFilter, setView, setQuery, toggleSort, clearArtistFilter, setScreen, resetReg } = useStore();
   const isMobile = useIsMobile();
 
   const lib = useMemo(() => {
@@ -63,7 +63,8 @@ export function Library() {
             <SearchIcon size={14} stroke="rgba(255,255,255,.45)" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="タイトル・アーティスト検索" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 13, width: '100%' }} />
           </div>
-          <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.45)', whiteSpace: 'nowrap' }}>{lib.length} 件</div>
+          {!isMobile && <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.45)', whiteSpace: 'nowrap' }}>{lib.length} 件</div>}
+          <button onClick={() => { resetReg(); setScreen('register'); }} title="楽曲を追加" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '9px 12px' : '9px 15px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', color: 'var(--accent)', background: 'var(--accent-soft, rgba(255,255,255,.06))', border: '1px solid var(--accent)', boxShadow: '0 0 16px var(--glow)' }}><PlusIcon size={15} />{!isMobile && '追加'}</button>
           <div style={{ display: 'flex', gap: 2, padding: 3, borderRadius: 9, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
             <button onClick={() => setView('list')} style={vb(isListView)} title="リスト"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg></button>
             <button onClick={() => setView('grid')} style={vb(!isListView)} title="グリッド"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg></button>
