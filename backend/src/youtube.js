@@ -216,6 +216,35 @@ async function scrapeCandidates(query) {
   return cands;
 }
 
+// ── search suggestions (autocomplete) ───────────────────────────────────────
+// YouTube's search box is powered by Google's public suggest endpoint. It
+// returns JSONP-ish data: ["query", ["sug1","sug2",...], ...]. We request the
+// `firefox` client which yields clean JSON, scoped to YouTube (`ds=yt`).
+export async function suggestYouTube(query) {
+  const q = (query || '').trim();
+  if (!q) return [];
+  const url = `https://suggestqueries.google.com/complete/search?${new URLSearchParams({
+    client: 'firefox', ds: 'yt', hl: 'ja', q,
+  }).toString()}`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'ja,en;q=0.8' },
+    });
+    if (!res.ok) throw new Error(`suggest ${res.status}`);
+    const data = await res.json();
+    const list = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+    return list.filter((s) => typeof s === 'string').slice(0, 10);
+  } catch (e) {
+    console.warn('[youtube] suggest failed:', e.message);
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function searchYouTube(query) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (apiKey) {

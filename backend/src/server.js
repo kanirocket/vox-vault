@@ -13,7 +13,7 @@ import {
   getSetting,
   setSetting,
 } from './db.js';
-import { searchYouTube } from './youtube.js';
+import { searchYouTube, suggestYouTube } from './youtube.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -209,6 +209,14 @@ api.get('/youtube/search', async (req, res) => {
     res.json(await searchYouTube(req.query.q || ''));
   } catch (e) {
     res.status(502).json({ error: 'youtube search failed', detail: e.message });
+  }
+});
+
+api.get('/youtube/suggest', async (req, res) => {
+  try {
+    res.json({ suggestions: await suggestYouTube(req.query.q || '') });
+  } catch (e) {
+    res.status(502).json({ error: 'youtube suggest failed', detail: e.message });
   }
 });
 

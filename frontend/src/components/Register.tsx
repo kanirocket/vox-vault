@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
+import { api } from '../api';
 import { SearchIcon, PlayIcon } from '../icons';
 import { RegisterForm } from './RegisterForm';
 
@@ -33,18 +34,71 @@ function Stepper({ step }: { step: number }) {
 function Step1() {
   const startSearch = useStore((s) => s.startSearch);
   const [query, setQuery] = useState('');
-  const go = () => startSearch(query);
+  const [suggests, setSuggests] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const skipFetch = useRef(false); // suppress refetch right after picking a suggestion
+
+  const go = (q?: string) => { setOpen(false); startSearch(q ?? query); };
+  const pick = (s: string) => { skipFetch.current = true; setQuery(s); setSuggests([]); setOpen(false); setActive(-1); go(s); };
+
+  // debounced suggestion fetch
+  useEffect(() => {
+    if (skipFetch.current) { skipFetch.current = false; return; }
+    const q = query.trim();
+    if (!q) { setSuggests([]); setOpen(false); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const r = await api<{ suggestions: string[] }>(`/youtube/suggest?q=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+        setSuggests(r.suggestions || []);
+        setOpen((r.suggestions || []).length > 0);
+        setActive(-1);
+      } catch { /* aborted or failed — keep silent */ }
+    }, 180);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [query]);
+
+  // close on outside click
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => { if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (open && suggests.length) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => (a + 1) % suggests.length); return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => (a <= 0 ? suggests.length - 1 : a - 1)); return; }
+      if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) pick(suggests[active]); else go(); return; }
+      if (e.key === 'Escape') { setOpen(false); return; }
+    } else if (e.key === 'Enter') { go(); }
+  };
+
   return (
     <div style={{ borderRadius: 18, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(18px)', padding: '42px 40px 46px', textAlign: 'center', animation: 'vvFade 180ms ease' }}>
       <div style={{ width: 58, height: 58, borderRadius: 15, margin: '0 auto 20px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 30px var(--glow)' }}><SearchIcon size={28} stroke="#06070f" /></div>
       <h2 style={{ margin: '0 0 8px', fontSize: 21, fontWeight: 900 }}>楽曲を検索して登録</h2>
       <p style={{ margin: '0 0 26px', fontSize: 13, color: 'rgba(255,255,255,.5)', lineHeight: 1.7 }}>曲名を入力すると YouTube から候補を取得します。<br />サムネイル・アーティスト・投稿日は自動で取り込まれます。</p>
       <div style={{ display: 'flex', gap: 10, maxWidth: 560, margin: '0 auto' }}>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 11, padding: '14px 18px', borderRadius: 12, background: 'rgba(0,0,0,.35)', border: '1px solid var(--accent)', boxShadow: '0 0 24px var(--glow)' }}>
-          <SearchIcon size={18} stroke="var(--accent)" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && go()} placeholder="例：グリッチ・ハート" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 15 }} />
+        <div ref={boxRef} style={{ flex: 1, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 18px', borderRadius: 12, background: 'rgba(0,0,0,.35)', border: '1px solid var(--accent)', boxShadow: '0 0 24px var(--glow)' }}>
+            <SearchIcon size={18} stroke="var(--accent)" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKey} onFocus={() => suggests.length && setOpen(true)} placeholder="例：グリッチ・ハート" autoComplete="off" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 15 }} />
+          </div>
+          {open && suggests.length > 0 && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 30, borderRadius: 12, overflow: 'hidden', background: 'rgba(14,16,26,.98)', border: '1px solid rgba(255,255,255,.12)', boxShadow: '0 12px 34px rgba(0,0,0,.55)', textAlign: 'left', animation: 'vvPop 120ms ease' }}>
+              {suggests.map((s, i) => (
+                <button key={s} onMouseEnter={() => setActive(i)} onClick={() => pick(s)} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 16px', background: i === active ? 'rgba(255,255,255,.07)' : 'none', border: 'none', borderTop: i ? '1px solid rgba(255,255,255,.04)' : 'none', cursor: 'pointer', color: '#fff', fontFamily: 'inherit', fontSize: 14, textAlign: 'left' }}>
+                  <SearchIcon size={14} stroke="rgba(255,255,255,.4)" />
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <button onClick={go} style={{ padding: '0 28px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#06070f', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>検索</button>
+        <button onClick={() => go()} style={{ padding: '0 28px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#06070f', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>検索</button>
       </div>
       <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 18, letterSpacing: 1 }}>YOUTUBE DATA API · v3</div>
     </div>
