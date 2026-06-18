@@ -1,0 +1,11 @@
+{
+  "name": "vox-vault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n docker,frontend -c blue,cyan \"docker compose up\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

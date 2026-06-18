@@ -58,25 +58,27 @@ curl http://localhost:4030/api/state > backend/src/migration-data.json
 
 ## ローカル開発環境
 
-### バックエンド（Express + PostgreSQL）
-
-PostgreSQL が起動している必要があります。Docker で起動する場合：
+### ワンコマンド起動
 
 ```bash
-docker compose up -d postgres
+npm install   # 初回のみ
+npm run dev
 ```
 
-その後：
+Docker（バックエンド＋DB）と Vite dev server（フロントエンド）が同時に起動します。
+
+- バックエンド API: **http://localhost:4030**
+- フロントエンド HMR: **http://localhost:5173**
+
+### 個別起動
+
+**バックエンド（Docker）：**
 
 ```bash
-cd backend
-npm install
-PG_CONNECTION_STRING=postgresql://voxvault:voxvault@localhost:5432/voxvault npm start
+docker compose up --build
 ```
 
-Node 20 以上が必須です（Node 22 で開発）。
-
-### フロントエンド（React + TypeScript + Vite）
+**フロントエンド（Vite HMR）：**
 
 ```bash
 cd frontend
