@@ -10,7 +10,7 @@
 docker compose up --build
 ```
 
-その後 **http://localhost:4030** を開いてください。
+その後 **http://localhost:4031** を開いてください。
 
 - PostgreSQL は `vox-vault-db` コンテナとして自動起動し、ヘルスチェック後にアプリが起動します
 - データは `vox-pg-data` Docker ボリュームに永続化されます
@@ -51,7 +51,7 @@ cat backup.sql | docker exec -i vox-vault-db psql -U voxvault voxvault
 旧バージョンの SQLite データを移行するには、アプリを起動した状態で以下を実行してエクスポートします：
 
 ```bash
-curl http://localhost:4030/api/state > backend/src/migration-data.json
+curl http://localhost:4031/api/state > backend/src/migration-data.json
 ```
 
 その後コンテナを再ビルドすると、初回起動時に自動インポートされます。
@@ -67,8 +67,8 @@ npm run dev
 
 Docker（バックエンド＋DB）と Vite dev server（フロントエンド）が同時に起動します。
 
-- バックエンド API: **http://localhost:4030**
-- フロントエンド HMR: **http://localhost:5173**
+- フロントエンド HMR: **http://localhost:4030**
+- バックエンド API: **http://localhost:4031**
 
 ### 個別起動
 
@@ -83,13 +83,13 @@ docker compose up --build
 ```bash
 cd frontend
 npm install
-npm run dev        # http://localhost:5173 で HMR 付き開発サーバー起動
+npm run dev        # http://localhost:4030 で HMR 付き開発サーバー起動
 ```
 
 Vite は `/api` リクエストをバックエンド（デフォルト `http://localhost:3000`）にプロキシします。
 
 ```bash
-VITE_API_TARGET=http://localhost:4030 npm run dev
+VITE_API_TARGET=http://localhost:4031 npm run dev
 ```
 
 ### フロントエンドのビルドとテスト

@@ -26,7 +26,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "4030:3000"
+      - "4031:3000"
     environment:
       - PG_CONNECTION_STRING=postgresql://voxvault:voxvault@postgres:5432/voxvault
       # Set this to enable real YouTube Data API v3 search.
