@@ -33,6 +33,18 @@ function mockApi() {
 }
 
 beforeEach(() => {
+  // jsdom doesn't implement matchMedia — stub it so useIsMobile() won't throw.
+  // Returns matches:false so tests run in "desktop" mode.
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  });
+
   // the zustand store is a module singleton — reset nav/filter state so tests
   // don't leak into each other.
   useStore.setState({

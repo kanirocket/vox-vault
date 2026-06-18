@@ -37,6 +37,7 @@ interface Store {
   artistFilter: string | null;
 
   // transient UI
+  sidebarOpen: boolean;
   deletePending: number | null;
   addToListSong: number | null;
   activeList: number | null;
@@ -74,6 +75,8 @@ interface Store {
   confirmDel: (id: number) => Promise<void>;
   cancelDel: () => void;
   clearPending: () => void;
+  toggleSidebar: () => void;
+  closeSidebar: () => void;
 
   openAddToList: (id: number) => void;
   closeAddToList: () => void;
@@ -111,6 +114,7 @@ export const useStore = create<Store>((set, get) => ({
   view: 'list',
   artistFilter: null,
 
+  sidebarOpen: false,
   deletePending: null,
   addToListSong: null,
   activeList: null,
@@ -140,7 +144,9 @@ export const useStore = create<Store>((set, get) => ({
     toastTimer = setTimeout(() => set({ toast: null }), 2600);
   },
 
-  setScreen: (screen) => set({ screen, activeList: null }),
+  setScreen: (screen) => set({ screen, activeList: null, sidebarOpen: false }),
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+  closeSidebar: () => set({ sidebarOpen: false }),
   setTheme: (theme) => {
     set({ theme });
     api('/settings', { method: 'PUT', body: JSON.stringify({ theme }) }).catch(() => {});

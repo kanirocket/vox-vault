@@ -1,5 +1,6 @@
 import { useEffect, type CSSProperties } from 'react';
 import { useStore } from './store';
+import { useIsMobile } from './hooks';
 import { THEMES } from './constants';
 import { Background } from './components/Background';
 import { Sidebar } from './components/Sidebar';
@@ -25,7 +26,8 @@ function Screen() {
 }
 
 export function App() {
-  const { theme, booted, boot, clearPending } = useStore();
+  const { theme, booted, boot, clearPending, sidebarOpen, closeSidebar } = useStore();
+  const isMobile = useIsMobile();
 
   useEffect(() => { boot(); }, [boot]);
 
@@ -38,10 +40,19 @@ export function App() {
   return (
     <div style={rootStyle}>
       <Sidebar />
+
+      {/* overlay backdrop — mobile only, shown when sidebar is open */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={closeSidebar}
+          style={{ position: 'fixed', inset: 0, zIndex: 190, background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(2px)' }}
+        />
+      )}
+
       <Background />
-      <main style={{ position: 'relative', zIndex: 4, flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <main style={{ position: 'relative', zIndex: 4, flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <Header />
-        <div onClick={clearPending} style={{ flex: 1, overflowY: 'auto', padding: '24px 34px 40px' }}>
+        <div onClick={clearPending} style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px 14px 32px' : '24px 34px 40px' }}>
           {booted && <Screen />}
         </div>
       </main>

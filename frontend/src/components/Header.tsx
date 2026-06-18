@@ -1,8 +1,11 @@
 import { useStore } from '../store';
+import { useIsMobile } from '../hooks';
 import type { Screen } from '../types';
 
 export function Header() {
-  const { screen, songs, favs, lists, activeList } = useStore();
+  const { screen, songs, favs, lists, activeList, toggleSidebar } = useStore();
+  const isMobile = useIsMobile();
+
   const total = songs.length;
   const favCount = Object.values(favs).filter(Boolean).length;
   const activeListObj = lists.find((l) => l.id === activeList) || null;
@@ -17,15 +20,32 @@ export function Header() {
   const h = hs[screen];
 
   return (
-    <header style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '26px 34px 20px', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-      <div>
-        <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 3, color: 'var(--accent)', marginBottom: 6 }}>{h.en}</div>
-        <h1 style={{ margin: 0, fontSize: 27, fontWeight: 900, letterSpacing: 0.5 }}>{h.title}</h1>
+    <header style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '16px 16px 14px' : '26px 34px 20px', borderBottom: '1px solid rgba(255,255,255,.06)', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+        {isMobile && (
+          <button
+            onClick={toggleSidebar}
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.7)', padding: 6, borderRadius: 8, lineHeight: 1 }}
+            aria-label="メニューを開く"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 3, color: 'var(--accent)', marginBottom: isMobile ? 3 : 6 }}>{h.en}</div>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 27, fontWeight: 900, letterSpacing: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.title}</h1>
+        </div>
       </div>
-      <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,.4)', textAlign: 'right', lineHeight: 1.7 }}>
-        <div><span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)', marginRight: 6, animation: 'vvBlink 1.6s ease-in-out infinite' }} />SYNCED · LOCAL VAULT</div>
-        <div style={{ opacity: 0.6 }}>{h.desc}</div>
-      </div>
+      {!isMobile && (
+        <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,.4)', textAlign: 'right', lineHeight: 1.7, flexShrink: 0 }}>
+          <div><span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)', marginRight: 6, animation: 'vvBlink 1.6s ease-in-out infinite' }} />SYNCED · LOCAL VAULT</div>
+          <div style={{ opacity: 0.6 }}>{h.desc}</div>
+        </div>
+      )}
     </header>
   );
 }

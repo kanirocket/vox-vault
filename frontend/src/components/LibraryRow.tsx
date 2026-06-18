@@ -1,4 +1,5 @@
 import { useStore } from '../store';
+import { useIsMobile } from '../hooks';
 import { badgeStyle, dotStyle, tagChipStyle, thumbBg, type Decorated } from '../utils';
 import { MicIcon, PlusIcon, StarIcon, TrashIcon } from '../icons';
 import { RatingStars } from './RatingStars';
@@ -11,7 +12,46 @@ interface Props {
 
 export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
   const { deletePending, filterArtist, incPlays, showUnsing, toggleFav, openAddToList, startDel, confirmDel, cancelDel, rateSong } = useStore();
+  const isMobile = useIsMobile();
   const isPending = deletePending === s.id;
+
+  if (isMobile) {
+    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '3px 5px', borderRadius: 5, lineHeight: 1 } as const;
+    return (
+      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
+        {/* thumbnail */}
+        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 64, height: 36, borderRadius: 5, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
+          <div style={thumbBg(s.color)} />
+          {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+        </button>
+        {/* info + inline actions */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* line 1: title + fav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ flex: 1, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', transition: 'color .15s' }}>{s.title}</button>
+            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={14} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.3)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+          </div>
+          {/* line 2: artist + plays + actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
+            <button onClick={() => showUnsing(s.id)} style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>{s.playsF}</button>
+            {isPending ? (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 5, cursor: 'pointer', padding: '2px 7px', fontSize: 11, fontWeight: 700 }}>✓</button>
+                <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 5, cursor: 'pointer', padding: '2px 6px', fontSize: 11 }}>✕</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => incPlays(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><MicIcon size={13} /></button>
+                <button onClick={() => openAddToList(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={13} /></button>
+                <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} style={{ ...iconBtn, color: 'rgba(255,255,255,.22)' }}><TrashIcon size={12} /></button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-hover="row" style={{ display: 'grid', gridTemplateColumns, alignItems: 'center', gap: 16, padding: '11px 20px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>

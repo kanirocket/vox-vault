@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useStore } from '../store';
+import { useIsMobile } from '../hooks';
 import { GENRE_KEYS, GENRES } from '../constants';
 import { decorate } from '../utils';
 import type { Genre, SortKey } from '../types';
@@ -15,6 +16,7 @@ const CHIP_DEFS: { key: 'all' | Genre; label: string; color: string }[] = [
 export function Library() {
   const { songs, favs, filter, sortKey, sortDir, query, view, artistFilter,
     setFilter, setView, setQuery, toggleSort, clearArtistFilter } = useStore();
+  const isMobile = useIsMobile();
 
   const lib = useMemo(() => {
     let list = songs.slice();
@@ -45,17 +47,19 @@ export function Library() {
   return (
     <div style={{ animation: 'vvFade 200ms ease' }}>
       {/* toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+        {/* genre chips */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {CHIP_DEFS.map((c) => {
             const on = filter === c.key;
             return (
-              <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
+              <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '7px 13px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
             );
           })}
         </div>
+        {/* search row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', width: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', flex: 1 }}>
             <SearchIcon size={14} stroke="rgba(255,255,255,.45)" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="タイトル・アーティスト検索" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 13, width: '100%' }} />
           </div>
@@ -80,21 +84,23 @@ export function Library() {
       {/* listing */}
       {isListView ? (
         <div style={{ borderRadius: 16, background: 'rgba(255,255,255,.025)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,.07)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gc, alignItems: 'center', gap: 16, padding: '13px 20px', borderBottom: '1px solid rgba(255,255,255,.07)', fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,255,255,.4)' }}>
-            <span />
-            <button onClick={() => toggleSort('title')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>TITLE {ar('title')}</button>
-            {showGenre && <span>GENRE</span>}
-            <button onClick={() => toggleSort('date')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>投稿日 {ar('date')}</button>
-            <button onClick={() => toggleSort('views')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>視聴 {ar('views')}</button>
-            <button onClick={() => toggleSort('plays')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>歌唱 {ar('plays')}</button>
-            <span>歌える度</span>
-            <span />
-          </div>
+          {!isMobile && (
+            <div style={{ display: 'grid', gridTemplateColumns: gc, alignItems: 'center', gap: 16, padding: '13px 20px', borderBottom: '1px solid rgba(255,255,255,.07)', fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,255,255,.4)' }}>
+              <span />
+              <button onClick={() => toggleSort('title')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>TITLE {ar('title')}</button>
+              {showGenre && <span>GENRE</span>}
+              <button onClick={() => toggleSort('date')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>投稿日 {ar('date')}</button>
+              <button onClick={() => toggleSort('views')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>視聴 {ar('views')}</button>
+              <button onClick={() => toggleSort('plays')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>歌唱 {ar('plays')}</button>
+              <span>歌える度</span>
+              <span />
+            </div>
+          )}
           {lib.map((s) => <LibraryRow key={s.id} s={s} showGenre={showGenre} gridTemplateColumns={gc} />)}
           {lib.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,.35)', fontSize: 14 }}>見つかりません</div>}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(226px,1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill,minmax(160px,1fr))' : 'repeat(auto-fill,minmax(226px,1fr))', gap: isMobile ? 12 : 16 }}>
           {lib.map((s) => <SongCard key={s.id} s={s} showGenre={showGenre} />)}
         </div>
       )}
