@@ -49,11 +49,11 @@ export function Library() {
       {/* toolbar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
         {/* genre chips */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: isMobile ? 'auto' : 'visible', paddingBottom: isMobile ? 2 : 0 }}>
           {CHIP_DEFS.map((c) => {
             const on = filter === c.key;
             return (
-              <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '7px 13px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
+              <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '7px 13px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
             );
           })}
         </div>

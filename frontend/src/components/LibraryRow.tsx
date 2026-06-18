@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { useIsMobile } from '../hooks';
 import { badgeStyle, dotStyle, tagChipStyle, thumbBg, type Decorated } from '../utils';
-import { MicIcon, PlusIcon, StarIcon, TrashIcon } from '../icons';
+import { MicIcon, MoreIcon, PlusIcon, StarIcon, TrashIcon } from '../icons';
 import { RatingStars } from './RatingStars';
 
 interface Props {
@@ -14,9 +15,22 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
   const { deletePending, filterArtist, incPlays, showUnsing, toggleFav, openAddToList, startDel, confirmDel, cancelDel, rateSong } = useStore();
   const isMobile = useIsMobile();
   const isPending = deletePending === s.id;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
 
   if (isMobile) {
-    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '3px 5px', borderRadius: 5, lineHeight: 1 } as const;
+    // larger touch targets (~36px) for the inline actions
+    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 8, borderRadius: 8, lineHeight: 1, display: 'grid', placeItems: 'center', flexShrink: 0 } as const;
+    const menuItem = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '11px 14px', fontFamily: 'inherit', fontSize: 13, color: '#fff', textAlign: 'left' as const };
     return (
       <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
         {/* thumbnail */}
@@ -24,31 +38,38 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
           <div style={thumbBg(s.color)} />
           {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
         </button>
-        {/* info + inline actions */}
+        {/* info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* line 1: title + fav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ flex: 1, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', transition: 'color .15s' }}>{s.title}</button>
-            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={14} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.3)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
-          </div>
-          {/* line 2: artist + plays + actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+          {/* line 1: title */}
+          <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ display: 'block', width: '100%', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', transition: 'color .15s' }}>{s.title}</button>
+          {/* line 2: artist + plays */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
             <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
             <button onClick={() => showUnsing(s.id)} style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>{s.playsF}</button>
-            {isPending ? (
-              <>
-                <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 5, cursor: 'pointer', padding: '2px 7px', fontSize: 11, fontWeight: 700 }}>✓</button>
-                <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 5, cursor: 'pointer', padding: '2px 6px', fontSize: 11 }}>✕</button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => incPlays(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><MicIcon size={13} /></button>
-                <button onClick={() => openAddToList(s.id)} style={{ ...iconBtn, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={13} /></button>
-                <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} style={{ ...iconBtn, color: 'rgba(255,255,255,.22)' }}><TrashIcon size={12} /></button>
-              </>
-            )}
           </div>
         </div>
+        {/* actions */}
+        {isPending ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 7, cursor: 'pointer', padding: '7px 12px', fontSize: 13, fontWeight: 700 }}>✓</button>
+            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 7, cursor: 'pointer', padding: '7px 11px', fontSize: 13 }}>✕</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={18} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+            {/* overflow menu */}
+            <div ref={menuRef} style={{ position: 'relative' }}>
+              <button onClick={() => setMenuOpen((o) => !o)} title="メニュー" style={{ ...iconBtn, color: 'rgba(255,255,255,.5)' }}><MoreIcon size={18} /></button>
+              {menuOpen && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 150, background: 'rgba(20,22,34,.98)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,.5)', overflow: 'hidden', zIndex: 20, animation: 'vvPop 120ms ease' }}>
+                  <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'var(--accent)' }}><MicIcon size={16} />歌唱 +1</button>
+                  <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} style={menuItem}><PlusIcon size={16} />リストに追加</button>
+                  <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'rgba(255,120,120,.95)' }}><TrashIcon size={15} />削除</button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

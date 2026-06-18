@@ -38,6 +38,14 @@ export const SearchIcon = ({ size = 24, stroke = 'currentColor' }: IconProps & {
   </svg>
 );
 
+export const MoreIcon = ({ size = 24 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <circle cx="5" cy="12" r="2" />
+    <circle cx="12" cy="12" r="2" />
+    <circle cx="19" cy="12" r="2" />
+  </svg>
+);
+
 export const MicIcon = ({ size = 24 }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <rect x="9" y="2" width="6" height="11" rx="3" />
