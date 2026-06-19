@@ -5,6 +5,9 @@
 # ── Stage 1: build the React + TypeScript + Vite frontend ───────────────────
 FROM node:22-slim AS frontend
 WORKDIR /fe
+# Vite inlines VITE_* env vars at build time — pass the Google client id through.
+ARG VITE_GOOGLE_CLIENT_ID=""
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 COPY frontend/ ./

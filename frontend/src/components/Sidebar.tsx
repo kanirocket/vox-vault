@@ -23,7 +23,7 @@ const NAV: { key: Screen; jp: string; en: string; icon: ReactNode }[] = [
 ];
 
 export function Sidebar() {
-  const { songs, favs, theme, screen, favOnly, sidebarOpen, setScreen, setTheme, closeSidebar, showFavorites } = useStore();
+  const { songs, favs, theme, screen, favOnly, sidebarOpen, user, setScreen, setTheme, closeSidebar, showFavorites, logout } = useStore();
   const isMobile = useIsMobile();
 
   const total = songs.length;
@@ -113,6 +113,20 @@ export function Sidebar() {
             })}
           </div>
         </div>
+        {user && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)' }}>
+            {user.picture
+              ? <img src={user.picture} alt="" referrerPolicy="no-referrer" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
+              : <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', color: '#06070f', fontWeight: 900 }}>{(user.name || user.email || '?').slice(0, 1).toUpperCase()}</div>}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name || 'ゲスト'}{user.isAdmin && <span style={{ marginLeft: 6, fontFamily: "'Share Tech Mono',monospace", fontSize: 8, color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4, padding: '1px 4px' }}>ADMIN</span>}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
+            </div>
+            <button onClick={logout} title="ログアウト" style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.45)', padding: 6, borderRadius: 7, lineHeight: 1 }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

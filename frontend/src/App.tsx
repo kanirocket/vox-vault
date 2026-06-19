@@ -11,6 +11,7 @@ import { Playlists } from './components/Playlists';
 import { Stats } from './components/Stats';
 import { Modals } from './components/Modals';
 import { Toast } from './components/Toast';
+import { Login } from './components/Login';
 
 function Screen() {
   const screen = useStore((s) => s.screen);
@@ -25,16 +26,22 @@ function Screen() {
 }
 
 export function App() {
-  const { theme, booted, boot, clearPending, sidebarOpen, closeSidebar } = useStore();
+  const { theme, user, authReady, booted, initAuth, clearPending, sidebarOpen, closeSidebar } = useStore();
   const isMobile = useIsMobile();
 
-  useEffect(() => { boot(); }, [boot]);
+  useEffect(() => { initAuth(); }, [initAuth]);
 
   const rootStyle: CSSProperties = {
     position: 'relative', width: '100%', height: '100vh', display: 'flex', overflow: 'hidden',
     fontFamily: "'Noto Sans JP',sans-serif", color: '#fff', background: 'var(--bg)',
     ...(THEMES[theme] as CSSProperties),
   };
+
+  // gate on auth: wait for the initial session check, then require a user
+  if (!authReady) {
+    return <div style={{ ...rootStyle, display: 'grid', placeItems: 'center' }}><div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.4)' }}>LOADING…</div></div>;
+  }
+  if (!user) return <Login />;
 
   return (
     <div style={rootStyle}>

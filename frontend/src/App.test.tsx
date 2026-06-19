@@ -25,6 +25,9 @@ const STATE: StatePayload = {
 function mockApi() {
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
+    if (url.includes('/api/auth/me')) {
+      return { ok: true, status: 200, json: async () => ({ id: 1, theme: 'holo' }) } as Response;
+    }
     if (url.includes('/api/state')) {
       return { ok: true, status: 200, json: async () => STATE } as Response;
     }
@@ -45,11 +48,16 @@ beforeEach(() => {
     })),
   });
 
+  // a stored token makes initAuth() restore a session (via mocked /auth/me)
+  // and then boot() the data, mirroring a logged-in user.
+  localStorage.setItem('vv_token', 'test-token');
+
   // the zustand store is a module singleton — reset nav/filter state so tests
   // don't leak into each other.
   useStore.setState({
+    user: null, authReady: false,
     songs: [], lists: [], favs: {}, booted: false,
-    screen: 'library', filter: 'all', query: '', view: 'list', artistFilter: null,
+    screen: 'library', filter: 'all', favOnly: false, query: '', view: 'list', artistFilter: null,
     regStep: 1, activeList: null, addToListSong: null, creatingList: false,
     unsingPending: null, deletePending: null,
   });
@@ -65,8 +73,8 @@ test('boots and renders the library with hydrated songs', async () => {
   mockApi();
   render(<App />);
 
-  // sidebar nav renders immediately
-  expect(screen.getAllByText('ライブラリ').length).toBeGreaterThan(0);
+  // sidebar nav renders once the session is restored
+  expect((await screen.findAllByText('ライブラリ')).length).toBeGreaterThan(0);
 
   // songs hydrate from the mocked /api/state
   expect(await screen.findByText('グリッチ・ハート')).toBeTruthy();

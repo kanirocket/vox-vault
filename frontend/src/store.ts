@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { api, ApiError } from './api';
+import { api, ApiError, getToken, setToken, setUnauthorizedHandler } from './api';
 import type {
-  Candidate, Genre, Playlist, Screen, SearchResult, Song, SortDir, SortKey,
-  StatePayload, Theme, Toast, ToastType, ViewMode,
+  AuthResult, Candidate, Genre, Playlist, Screen, SearchResult, Song, SortDir, SortKey,
+  StatePayload, Theme, Toast, ToastType, User, ViewMode,
 } from './types';
 
 export interface SavePayload {
@@ -20,6 +20,10 @@ export interface SavePayload {
 }
 
 interface Store {
+  // auth
+  user: User | null;
+  authReady: boolean; // initial session check finished
+
   // data
   songs: Song[];
   lists: Playlist[];
@@ -55,6 +59,9 @@ interface Store {
   pendingListAdd: number | null; // list to auto-add a newly registered song to
 
   // actions
+  initAuth: () => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
+  logout: () => void;
   boot: () => Promise<void>;
   showToast: (msg: string, type?: ToastType) => void;
   setScreen: (screen: Screen) => void;
@@ -105,6 +112,9 @@ let toastTimer: ReturnType<typeof setTimeout> | null = null;
 let delTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useStore = create<Store>((set, get) => ({
+  user: null,
+  authReady: false,
+
   songs: [],
   lists: [],
   favs: {},
@@ -134,6 +144,38 @@ export const useStore = create<Store>((set, get) => ({
   regLoading: false,
   regSource: null,
   pendingListAdd: null,
+
+  // Restore a session on app load (if a token is stored) and fetch data.
+  initAuth: async () => {
+    setUnauthorizedHandler(() => get().logout());
+    if (!getToken()) { set({ authReady: true }); return; }
+    try {
+      const me = await api<{ id: number; theme: Theme }>('/auth/me');
+      // /auth/me confirms the token is valid; hydrate a minimal user, then boot.
+      set({ user: { id: me.id, email: '', name: '', picture: '', theme: me.theme, isAdmin: false }, authReady: true });
+      await get().boot();
+    } catch {
+      setToken(null);
+      set({ user: null, authReady: true });
+    }
+  },
+
+  loginWithGoogle: async (credential) => {
+    try {
+      const r = await api<AuthResult>('/auth/google', { method: 'POST', body: JSON.stringify({ credential }) });
+      setToken(r.token);
+      set({ user: r.user, theme: r.user.theme });
+      await get().boot();
+      get().showToast(`ようこそ、${r.user.name || 'ゲスト'} さん`);
+    } catch {
+      get().showToast('Google サインインに失敗しました', 'error');
+    }
+  },
+
+  logout: () => {
+    setToken(null);
+    set({ user: null, songs: [], lists: [], favs: {}, booted: false, screen: 'library', favOnly: false, activeList: null });
+  },
 
   boot: async () => {
     try {

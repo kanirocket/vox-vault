@@ -72,3 +72,17 @@ export interface Toast {
   type: ToastType;
   ts: number;
 }
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  picture: string;
+  theme: Theme;
+  isAdmin: boolean;
+}
+
+export interface AuthResult {
+  token: string;
+  user: User;
+}

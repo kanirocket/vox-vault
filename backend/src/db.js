@@ -23,6 +23,8 @@ export async function withTransaction(fn) {
 }
 
 // ── schema ────────────────────────────────────────────────────────────────────
+// Songs are a shared catalogue. Favorites, sing history and playlists are scoped
+// per user (added via ALTER for existing installs; see MIGRATIONS below).
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS songs (
     id          BIGINT PRIMARY KEY,
@@ -43,6 +45,17 @@ const SCHEMA = `
     created     BIGINT  NOT NULL DEFAULT 0
   );
 
+  CREATE TABLE IF NOT EXISTS users (
+    id         BIGSERIAL PRIMARY KEY,
+    google_sub TEXT    UNIQUE NOT NULL,
+    email      TEXT    NOT NULL DEFAULT '',
+    name       TEXT    NOT NULL DEFAULT '',
+    picture    TEXT    NOT NULL DEFAULT '',
+    theme      TEXT    NOT NULL DEFAULT 'holo',
+    is_admin   BOOLEAN NOT NULL DEFAULT FALSE,
+    created    BIGINT  NOT NULL DEFAULT 0
+  );
+
   CREATE TABLE IF NOT EXISTS sings (
     id      BIGSERIAL PRIMARY KEY,
     song_id BIGINT NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
@@ -52,7 +65,7 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS idx_sings_date  ON sings(date);
 
   CREATE TABLE IF NOT EXISTS favorites (
-    song_id BIGINT PRIMARY KEY REFERENCES songs(id) ON DELETE CASCADE
+    song_id BIGINT NOT NULL REFERENCES songs(id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS playlists (
@@ -76,6 +89,17 @@ const SCHEMA = `
   );
 `;
 
+// Idempotent migrations to add per-user scoping to pre-existing tables.
+const MIGRATIONS = `
+  ALTER TABLE favorites ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id) ON DELETE CASCADE;
+  ALTER TABLE sings     ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id) ON DELETE CASCADE;
+  ALTER TABLE playlists ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id) ON DELETE CASCADE;
+  ALTER TABLE favorites DROP CONSTRAINT IF EXISTS favorites_pkey;
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_fav_user_song ON favorites(user_id, song_id);
+  CREATE INDEX IF NOT EXISTS idx_sings_user ON sings(user_id);
+  CREATE INDEX IF NOT EXISTS idx_playlists_user ON playlists(user_id);
+`;
+
 // ── init (called once at server startup) ─────────────────────────────────────
 export async function initDb() {
   for (let i = 0; i < 12; i++) {
@@ -89,10 +113,64 @@ export async function initDb() {
     }
   }
   await pool.query(SCHEMA);
+  await pool.query(MIGRATIONS);
   await seedIfEmpty(pool);
 }
 
+// ── users / auth ────────────────────────────────────────────────────────────
+function serializeUser(row) {
+  return {
+    id:      Number(row.id),
+    email:   row.email,
+    name:    row.name,
+    picture: row.picture,
+    theme:   row.theme || 'holo',
+    isAdmin: !!row.is_admin,
+  };
+}
+
+// Find-or-create a user from a verified Google profile. The very first user to
+// sign in becomes admin and inherits any pre-existing (orphan) favorites, sing
+// history and playlists from the single-user era.
+export async function upsertUser({ sub, email, name, picture }) {
+  return withTransaction(async (client) => {
+    const existing = await client.query('SELECT * FROM users WHERE google_sub = $1', [sub]);
+    if (existing.rows.length) {
+      const r = await client.query(
+        'UPDATE users SET email=$2, name=$3, picture=$4 WHERE google_sub=$1 RETURNING *',
+        [sub, email || '', name || '', picture || ''],
+      );
+      return serializeUser(r.rows[0]);
+    }
+    const { rows: cnt } = await client.query('SELECT COUNT(*)::int AS n FROM users');
+    const isFirst = cnt[0].n === 0;
+    const ins = await client.query(
+      'INSERT INTO users (google_sub,email,name,picture,is_admin,created) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [sub, email || '', name || '', picture || '', isFirst, Date.now()],
+    );
+    const user = ins.rows[0];
+    if (isFirst) {
+      // claim legacy single-user data
+      await client.query('UPDATE favorites SET user_id=$1 WHERE user_id IS NULL', [user.id]);
+      await client.query('UPDATE sings     SET user_id=$1 WHERE user_id IS NULL', [user.id]);
+      await client.query('UPDATE playlists SET user_id=$1 WHERE user_id IS NULL', [user.id]);
+    }
+    return serializeUser(user);
+  });
+}
+
+export async function getUserTheme(userId) {
+  const { rows } = await pool.query('SELECT theme FROM users WHERE id = $1', [userId]);
+  return rows.length ? rows[0].theme : 'holo';
+}
+
+export async function setUserTheme(userId, theme) {
+  await pool.query('UPDATE users SET theme = $1 WHERE id = $2', [theme, userId]);
+}
+
 // ── serializers ───────────────────────────────────────────────────────────────
+// plays / lastPlayed are derived from the current user's sing history (sings are
+// per-user). The legacy songs.plays / songs.last_played columns are ignored.
 function serializeSong(row, favSet, sings = []) {
   const artists =
     Array.isArray(row.artists) && row.artists.length
@@ -100,6 +178,7 @@ function serializeSong(row, favSet, sings = []) {
       : row.artist
       ? [row.artist]
       : [];
+  const lastDate = sings.length ? sings[sings.length - 1].date : null;
   return {
     id:         Number(row.id),
     title:      row.title,
@@ -111,11 +190,11 @@ function serializeSong(row, favSet, sings = []) {
     date:       row.date,
     dur:        row.dur,
     views:      Number(row.views),
-    plays:      Number(row.plays),
+    plays:      sings.length,
     url:        row.url || '',
     artists,
     rating:     row.rating ?? null,
-    lastPlayed: row.last_played ? Number(row.last_played) : null,
+    lastPlayed: lastDate ? Date.parse(lastDate) || null : null,
     sings:      sings.map((s) => ({ id: Number(s.id), date: s.date })),
     favorite:   favSet ? favSet.has(Number(row.id)) : false,
   };
@@ -131,23 +210,23 @@ function serializePlaylist(row, songIds) {
   };
 }
 
-// ── public query API ──────────────────────────────────────────────────────────
-export async function getSong(id) {
+// ── public query API (all scoped to a userId) ───────────────────────────────
+export async function getSong(id, userId) {
   const { rows } = await pool.query('SELECT * FROM songs WHERE id = $1', [id]);
   if (!rows.length) return null;
   const [singsRes, favRes] = await Promise.all([
-    pool.query('SELECT id, date FROM sings WHERE song_id = $1 ORDER BY date', [id]),
-    pool.query('SELECT 1 FROM favorites WHERE song_id = $1', [id]),
+    pool.query('SELECT id, date FROM sings WHERE song_id = $1 AND user_id = $2 ORDER BY date', [id, userId]),
+    pool.query('SELECT 1 FROM favorites WHERE song_id = $1 AND user_id = $2', [id, userId]),
   ]);
   const favSet = new Set(favRes.rows.length ? [Number(id)] : []);
   return serializeSong(rows[0], favSet, singsRes.rows);
 }
 
-export async function allSongs() {
+export async function allSongs(userId) {
   const [songsRes, singsRes, favsRes] = await Promise.all([
     pool.query('SELECT * FROM songs ORDER BY created DESC, id DESC'),
-    pool.query('SELECT song_id, id, date FROM sings ORDER BY date'),
-    pool.query('SELECT song_id FROM favorites'),
+    pool.query('SELECT song_id, id, date FROM sings WHERE user_id = $1 ORDER BY date', [userId]),
+    pool.query('SELECT song_id FROM favorites WHERE user_id = $1', [userId]),
   ]);
   const singsMap = new Map();
   for (const s of singsRes.rows) {
@@ -161,8 +240,8 @@ export async function allSongs() {
   );
 }
 
-export async function getPlaylist(id) {
-  const { rows } = await pool.query('SELECT * FROM playlists WHERE id = $1', [id]);
+export async function getPlaylist(id, userId) {
+  const { rows } = await pool.query('SELECT * FROM playlists WHERE id = $1 AND user_id = $2', [id, userId]);
   if (!rows.length) return null;
   const { rows: sr } = await pool.query(
     'SELECT song_id FROM playlist_songs WHERE playlist_id = $1 ORDER BY position',
@@ -171,10 +250,10 @@ export async function getPlaylist(id) {
   return serializePlaylist(rows[0], sr.map((r) => r.song_id));
 }
 
-export async function allPlaylists() {
+export async function allPlaylists(userId) {
   const [plRes, psRes] = await Promise.all([
-    pool.query('SELECT * FROM playlists ORDER BY created, id'),
-    pool.query('SELECT playlist_id, song_id FROM playlist_songs ORDER BY playlist_id, position'),
+    pool.query('SELECT * FROM playlists WHERE user_id = $1 ORDER BY created, id', [userId]),
+    pool.query('SELECT ps.playlist_id, ps.song_id FROM playlist_songs ps JOIN playlists p ON p.id = ps.playlist_id WHERE p.user_id = $1 ORDER BY ps.playlist_id, ps.position', [userId]),
   ]);
   const map = new Map();
   for (const r of psRes.rows) {
@@ -185,8 +264,8 @@ export async function allPlaylists() {
   return plRes.rows.map((row) => serializePlaylist(row, map.get(Number(row.id)) || []));
 }
 
-export async function favsMap() {
-  const { rows } = await pool.query('SELECT song_id FROM favorites');
+export async function favsMap(userId) {
+  const { rows } = await pool.query('SELECT song_id FROM favorites WHERE user_id = $1', [userId]);
   const m = {};
   for (const r of rows) m[Number(r.song_id)] = true;
   return m;
