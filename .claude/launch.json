@@ -12,9 +12,9 @@
       "name": "vox-frontend-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
-      "port": 5173,
+      "port": 4030,
       "autoPort": true,
-      "env": { "VITE_API_TARGET": "http://localhost:4030" }
+      "env": { "VITE_API_TARGET": "http://localhost:4031" }
     }
   ]
 }

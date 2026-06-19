@@ -30,6 +30,7 @@ interface Store {
   // navigation / library
   screen: Screen;
   filter: 'all' | Genre;
+  favOnly: boolean;
   sortKey: SortKey;
   sortDir: SortDir;
   query: string;
@@ -59,6 +60,8 @@ interface Store {
   setScreen: (screen: Screen) => void;
   setTheme: (theme: Theme) => void;
   setFilter: (filter: 'all' | Genre) => void;
+  toggleFavOnly: () => void;
+  showFavorites: () => void;
   setView: (view: ViewMode) => void;
   setQuery: (query: string) => void;
   toggleSort: (key: SortKey) => void;
@@ -110,6 +113,7 @@ export const useStore = create<Store>((set, get) => ({
 
   screen: 'library',
   filter: 'all',
+  favOnly: false,
   sortKey: 'added',
   sortDir: 'desc',
   query: '',
@@ -147,7 +151,7 @@ export const useStore = create<Store>((set, get) => ({
     toastTimer = setTimeout(() => set({ toast: null }), 2600);
   },
 
-  setScreen: (screen) => set((s) => ({ screen, activeList: null, sidebarOpen: false, pendingListAdd: screen === 'register' ? s.pendingListAdd : null })),
+  setScreen: (screen) => set((s) => ({ screen, activeList: null, sidebarOpen: false, favOnly: false, pendingListAdd: screen === 'register' ? s.pendingListAdd : null })),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   closeSidebar: () => set({ sidebarOpen: false }),
   setTheme: (theme) => {
@@ -155,6 +159,8 @@ export const useStore = create<Store>((set, get) => ({
     api('/settings', { method: 'PUT', body: JSON.stringify({ theme }) }).catch(() => {});
   },
   setFilter: (filter) => set({ filter }),
+  toggleFavOnly: () => set((s) => ({ favOnly: !s.favOnly })),
+  showFavorites: () => set({ screen: 'library', favOnly: true, artistFilter: null, sidebarOpen: false }),
   setView: (view) => set({ view }),
   setQuery: (query) => set({ query }),
   toggleSort: (key) =>

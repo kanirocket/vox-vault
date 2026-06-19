@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: Number(process.env.PORT) || 4030,
+    allowedHosts: ['dev-vox-vault.kanirocket.com'],
     proxy: {
       '/api': process.env.VITE_API_TARGET || 'http://localhost:4031',
     },

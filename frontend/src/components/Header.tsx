@@ -3,7 +3,7 @@ import { useIsMobile } from '../hooks';
 import type { Screen } from '../types';
 
 export function Header() {
-  const { screen, songs, favs, lists, activeList, toggleSidebar } = useStore();
+  const { screen, songs, favs, lists, activeList, favOnly, toggleSidebar } = useStore();
   const isMobile = useIsMobile();
 
   const total = songs.length;
@@ -17,7 +17,9 @@ export function Header() {
     favorites: { en: '// FAVORITES', title: 'お気に入り', desc: favCount + ' FAVORITED' },
     stats: { en: '// ANALYTICS', title: '統計ダッシュボード', desc: 'VAULT INSIGHTS' },
   };
-  const h = hs[screen];
+  const h = screen === 'library' && favOnly
+    ? { en: '// FAVORITES', title: 'お気に入り', desc: favCount + ' FAVORITED' }
+    : hs[screen];
 
   return (
     <header style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '16px 16px 14px' : '26px 34px 20px', borderBottom: '1px solid rgba(255,255,255,.06)', gap: 12 }}>

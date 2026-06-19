@@ -8,7 +8,6 @@ import { Header } from './components/Header';
 import { Library } from './components/Library';
 import { Register } from './components/Register';
 import { Playlists } from './components/Playlists';
-import { Favorites } from './components/Favorites';
 import { Stats } from './components/Stats';
 import { Modals } from './components/Modals';
 import { Toast } from './components/Toast';
@@ -19,7 +18,7 @@ function Screen() {
     case 'library': return <Library />;
     case 'register': return <Register />;
     case 'lists': return <Playlists />;
-    case 'favorites': return <Favorites />;
+    case 'favorites': return <Library />;
     case 'stats': return <Stats />;
     default: return null;
   }

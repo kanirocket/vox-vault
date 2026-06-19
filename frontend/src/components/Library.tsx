@@ -4,7 +4,7 @@ import { useIsMobile } from '../hooks';
 import { GENRE_KEYS, GENRES } from '../constants';
 import { decorate } from '../utils';
 import type { Genre, SortKey } from '../types';
-import { PlusIcon, SearchIcon } from '../icons';
+import { PlusIcon, SearchIcon, StarIcon } from '../icons';
 import { LibraryRow } from './LibraryRow';
 import { SongCard } from './SongCard';
 
@@ -14,13 +14,14 @@ const CHIP_DEFS: { key: 'all' | Genre; label: string; color: string }[] = [
 ];
 
 export function Library() {
-  const { songs, favs, filter, sortKey, sortDir, query, view, artistFilter,
-    setFilter, setView, setQuery, toggleSort, clearArtistFilter, setScreen, resetReg } = useStore();
+  const { songs, favs, filter, favOnly, sortKey, sortDir, query, view, artistFilter,
+    setFilter, toggleFavOnly, setView, setQuery, toggleSort, clearArtistFilter, setScreen, resetReg } = useStore();
   const isMobile = useIsMobile();
 
   const lib = useMemo(() => {
     let list = songs.slice();
     if (filter !== 'all') list = list.filter((s) => s.genre === filter);
+    if (favOnly) list = list.filter((s) => favs[s.id]);
     if (artistFilter) list = list.filter((s) => (Array.isArray(s.artists) && s.artists.length ? s.artists : [s.artist]).includes(artistFilter));
     if (query.trim()) {
       const q = query.trim().toLowerCase();
@@ -35,7 +36,7 @@ export function Library() {
       return (a.id - b.id) * dir;
     });
     return list.map((s) => decorate(s, favs));
-  }, [songs, favs, filter, artistFilter, query, sortKey, sortDir]);
+  }, [songs, favs, filter, favOnly, artistFilter, query, sortKey, sortDir]);
 
   const showGenre = filter === 'all';
   const isListView = view === 'list';
@@ -48,14 +49,17 @@ export function Library() {
     <div style={{ animation: 'vvFade 200ms ease' }}>
       {/* toolbar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
-        {/* genre chips */}
-        <div style={{ display: 'flex', gap: isMobile ? 3 : 8, flexWrap: 'wrap' }}>
-          {CHIP_DEFS.map((c) => {
-            const on = filter === c.key;
-            return (
-              <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '6px 6px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: isMobile ? 10.5 : 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
-            );
-          })}
+        {/* genre chips + favorites filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10 }}>
+          <div style={{ display: 'flex', gap: isMobile ? 3 : 8, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
+            {CHIP_DEFS.map((c) => {
+              const on = filter === c.key;
+              return (
+                <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '6px 6px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: isMobile ? 10.5 : 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
+              );
+            })}
+          </div>
+          <button onClick={toggleFavOnly} title={favOnly ? 'お気に入りフィルター解除' : 'お気に入りのみ表示'} style={{ flexShrink: 0, display: 'grid', placeItems: 'center', padding: isMobile ? '7px' : '8px', borderRadius: 9, cursor: 'pointer', transition: 'all .15s', border: favOnly ? '1px solid #ffd24a' : '1px solid rgba(255,255,255,.1)', background: favOnly ? 'rgba(255,210,74,.14)' : 'rgba(255,255,255,.03)', boxShadow: favOnly ? '0 0 16px rgba(255,210,74,.4)' : 'none' }}><StarIcon size={isMobile ? 17 : 18} fill={favOnly ? '#ffd24a' : 'none'} stroke={favOnly ? '#ffd24a' : 'rgba(255,255,255,.5)'} style={{ filter: favOnly ? 'drop-shadow(0 0 4px #ffd24a)' : 'none' }} /></button>
         </div>
         {/* search row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

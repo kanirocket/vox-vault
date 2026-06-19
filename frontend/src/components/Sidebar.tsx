@@ -23,7 +23,7 @@ const NAV: { key: Screen; jp: string; en: string; icon: ReactNode }[] = [
 ];
 
 export function Sidebar() {
-  const { songs, favs, theme, screen, sidebarOpen, setScreen, setTheme, closeSidebar } = useStore();
+  const { songs, favs, theme, screen, favOnly, sidebarOpen, setScreen, setTheme, closeSidebar, showFavorites } = useStore();
   const isMobile = useIsMobile();
 
   const total = songs.length;
@@ -31,9 +31,14 @@ export function Sidebar() {
   const totalPlays = songs.reduce((a, s) => a + s.plays, 0);
 
   const handleNav = (key: Screen) => {
-    setScreen(key);
+    if (key === 'favorites') { showFavorites(); }
+    else { setScreen(key); }
     if (isMobile) closeSidebar();
   };
+
+  // favorites is now a library filter, not a separate screen
+  const isActive = (key: Screen) =>
+    key === 'favorites' ? screen === 'library' && favOnly : screen === key && !(key === 'library' && favOnly);
 
   const baseStyle: CSSProperties = {
     height: '100vh', display: 'flex', flexDirection: 'column',
@@ -76,7 +81,7 @@ export function Sidebar() {
       <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,.3)', padding: '0 12px 8px' }}>// NAVIGATION</div>
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {NAV.map((n) => (
-          <button key={n.key} style={navBtnStyle(screen === n.key)} onClick={() => handleNav(n.key)}>
+          <button key={n.key} style={navBtnStyle(isActive(n.key))} onClick={() => handleNav(n.key)}>
             {n.icon}
             <div>
               <div style={{ fontSize: 13, fontWeight: 700 }}>{n.jp}</div>
