@@ -13,7 +13,7 @@ export function SongCard({ s, showGenre, height = 128 }: Props) {
   const { filterArtist, openAddToList, toggleFav, incPlays, rateSong } = useStore();
 
   return (
-    <div data-hover="card" className="rounded-2xl overflow-hidden bg-white/[.03] border border-white/[.08] transition-all">
+    <div data-hover="card" className="rounded-2xl overflow-hidden bg-accent/5 border border-white/[.08] transition-all">
       <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" className="block relative w-full p-0 border-none cursor-pointer bg-transparent" style={{ height }}>
         <div style={thumbBg(s.color)} />
         {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}

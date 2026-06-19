@@ -105,7 +105,7 @@ export function Library() {
 
       {/* listing */}
       {isListView ? (
-        <div className="rounded-2xl bg-white/[.025] backdrop-blur-lg border border-white/[.07] overflow-hidden">
+        <div className="rounded-2xl bg-accent/5 backdrop-blur-lg border border-white/[.07] overflow-hidden">
           {!isMobile && (
             <div className="grid items-center gap-4 px-5 py-[13px] border-b border-white/[.07] font-['Share_Tech_Mono',monospace] text-[10px] tracking-[1.5px] text-white/40" style={{ gridTemplateColumns: gc }}>
               <span />

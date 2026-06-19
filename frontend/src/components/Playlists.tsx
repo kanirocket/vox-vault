@@ -12,8 +12,12 @@ function cover(l: Playlist, songIdToGenreColor: (id: number) => string | null): 
 }
 
 export function Playlists() {
-  const { songs, lists, favs, activeList, openList, closeList, deleteList, openCreateList, removeFromList, incPlays, toggleSongInList, registerForList } = useStore();
+  const { songs, lists, favs, activeList, view, setView, openList, closeList, deleteList, openCreateList, removeFromList, incPlays, toggleSongInList, registerForList } = useStore();
   const [addQuery, setAddQuery] = useState('');
+  const isListView = view === 'list';
+  const vbClass = (on: boolean) =>
+    'px-[9px] py-[7px] rounded-[7px] border-none cursor-pointer transition-[background] duration-150 grid place-items-center ' +
+    (on ? 'bg-white/[.14] text-white' : 'bg-transparent text-white/40');
   const colorOf = (id: number) => {
     const s = songs.find((x) => x.id === id);
     return s ? (GENRES[s.genre] || GENRES.artist).color : null;
@@ -47,6 +51,10 @@ export function Playlists() {
             <div className="text-xl font-black">{activeListObj.name}</div>
             <div className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent tracking-[1px]">{activeListObj.en} · {activeListObj.songIds.length}曲</div>
           </div>
+          <div className="ml-auto flex gap-0.5 p-[3px] rounded-[9px] bg-white/[.04] border border-white/[.08]">
+            <button onClick={() => setView('list')} className={vbClass(isListView)} title="リスト"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg></button>
+            <button onClick={() => setView('grid')} className={vbClass(!isListView)} title="グリッド"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg></button>
+          </div>
         </div>
 
         {/* search & add panel */}
@@ -57,7 +65,7 @@ export function Playlists() {
             {addQuery && <button onClick={() => setAddQuery('')} className="bg-transparent border-none cursor-pointer text-white/40 text-[15px] leading-none px-0.5">✕</button>}
           </div>
           {q && (
-            <div className="mt-2 rounded-xl overflow-hidden bg-white/[.025] border border-white/[.07]">
+            <div className="mt-2 rounded-xl overflow-hidden bg-accent/5 border border-white/[.07]">
               {searchResults.map((s) => (
                 <div key={s.id} className="flex items-center gap-[11px] px-[13px] py-[9px] border-b border-white/[.04]">
                   <div className="relative w-[52px] h-[30px] rounded-[5px] overflow-hidden shrink-0 border border-white/10">
@@ -83,13 +91,37 @@ export function Playlists() {
           )}
         </div>
 
-        {detail.length > 0 ? (
+        {detail.length === 0 ? (
+          <div className="p-12 text-center text-white/35 text-sm rounded-2xl border-[1.5px] border-dashed border-white/12">まだ楽曲がありません。検索またはライブラリから追加しましょう。</div>
+        ) : isListView ? (
+          <div className="rounded-2xl overflow-hidden bg-accent/5 border border-white/[.08]">
+            {detail.map((s) => (
+              <div key={s.id} data-hover="row" className="flex items-center gap-3 px-[13px] py-2.5 border-b border-white/[.04]">
+                <button onClick={() => incPlays(s.id)} title="歌唱 +1" className="relative w-[92px] h-[52px] rounded-md overflow-hidden shrink-0 border border-white/10 cursor-pointer p-0 bg-transparent">
+                  <div style={thumbBg(s.color)} />
+                  {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}
+                  <div className="absolute inset-0 grid place-items-center"><span className="[filter:drop-shadow(0_1px_4px_rgba(0,0,0,.75))]"><PlayIcon size={18} /></span></div>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" className="block w-full text-left text-[13px] font-bold whitespace-nowrap overflow-hidden text-ellipsis bg-transparent border-none cursor-pointer text-white p-0 transition-colors">{s.title}</button>
+                  <div className="flex items-center gap-2 mt-1 min-w-0">
+                    <span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span>
+                    <span className="text-[11px] text-white/45 whitespace-nowrap overflow-hidden text-ellipsis">{s.artist}</span>
+                  </div>
+                </div>
+                <span className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent shrink-0">{s.playsF} 歌唱</span>
+                <button onClick={() => removeFromList(s.id, activeListObj.id)} title="リストから削除" className="shrink-0 bg-transparent border border-white/15 cursor-pointer text-white/60 rounded-md px-2 py-1 text-[12px]">✕</button>
+              </div>
+            ))}
+          </div>
+        ) : (
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))' }}>
             {detail.map((s) => (
-              <div key={s.id} data-hover="card" className="rounded-2xl overflow-hidden bg-white/[.03] border border-white/[.08] transition-all">
+              <div key={s.id} data-hover="card" className="rounded-2xl overflow-hidden bg-accent/5 border border-white/[.08] transition-all">
                 <div className="relative w-full h-[120px]">
                   <div style={thumbBg(s.color)} />
-                  <button onClick={() => incPlays(s.id)} className="absolute inset-0 grid place-items-center bg-transparent border-none cursor-pointer"><PlayIcon size={22} /></button>
+                  {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}
+                  <button onClick={() => incPlays(s.id)} title="歌唱 +1" className="absolute inset-0 grid place-items-center bg-transparent border-none cursor-pointer"><span className="[filter:drop-shadow(0_1px_4px_rgba(0,0,0,.75))]"><PlayIcon size={22} /></span></button>
                   <div className="absolute left-2 top-2"><span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span></div>
                   <button onClick={() => removeFromList(s.id, activeListObj.id)} title="リストから削除" className="absolute right-1.5 top-1.5 bg-black/50 border-none cursor-pointer text-white/70 rounded-md px-[7px] py-1 text-[11px]">✕</button>
                 </div>
@@ -101,8 +133,6 @@ export function Playlists() {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="p-12 text-center text-white/35 text-sm rounded-2xl border-[1.5px] border-dashed border-white/12">まだ楽曲がありません。ライブラリから「＋」で追加しましょう。</div>
         )}
       </div>
     );
@@ -119,7 +149,7 @@ export function Playlists() {
         {lists.map((l) => {
           const cv = cover(l, colorOf);
           return (
-            <div key={l.id} onClick={() => openList(l.id)} data-hover="card" className="rounded-2xl overflow-hidden bg-white/[.03] border border-white/[.08] transition-all cursor-pointer">
+            <div key={l.id} onClick={() => openList(l.id)} data-hover="card" className="rounded-2xl overflow-hidden bg-accent/5 border border-white/[.08] transition-all cursor-pointer">
               <div className="relative grid grid-cols-2 grid-rows-2 h-[130px] gap-px">
                 <div style={{ background: cv[0] }} /><div style={{ background: cv[1] }} /><div style={{ background: cv[2] }} /><div style={{ background: cv[3] }} />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,transparent 40%,rgba(8,10,20,.85))' }} />
