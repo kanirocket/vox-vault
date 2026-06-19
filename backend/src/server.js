@@ -10,6 +10,7 @@ import {
   allPlaylists,
   getPlaylist,
   favsMap,
+  getUser,
   getUserTheme,
   setUserTheme,
 } from './db.js';
@@ -43,7 +44,9 @@ api.use(authMiddleware);
 
 api.get('/auth/me', async (req, res) => {
   try {
-    res.json({ id: req.userId, theme: await getUserTheme(req.userId) });
+    const user = await getUser(req.userId);
+    if (!user) return res.status(401).json({ error: 'user no longer exists' });
+    res.json(user);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

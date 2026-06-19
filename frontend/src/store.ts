@@ -150,9 +150,9 @@ export const useStore = create<Store>((set, get) => ({
     setUnauthorizedHandler(() => get().logout());
     if (!getToken()) { set({ authReady: true }); return; }
     try {
-      const me = await api<{ id: number; theme: Theme }>('/auth/me');
-      // /auth/me confirms the token is valid; hydrate a minimal user, then boot.
-      set({ user: { id: me.id, email: '', name: '', picture: '', theme: me.theme, isAdmin: false }, authReady: true });
+      // /auth/me confirms the token is valid and returns the full profile.
+      const user = await api<User>('/auth/me');
+      set({ user, theme: user.theme, authReady: true });
       await get().boot();
     } catch {
       setToken(null);

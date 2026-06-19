@@ -159,6 +159,11 @@ export async function upsertUser({ sub, email, name, picture }) {
   });
 }
 
+export async function getUser(userId) {
+  const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+  return rows.length ? serializeUser(rows[0]) : null;
+}
+
 export async function getUserTheme(userId) {
   const { rows } = await pool.query('SELECT theme FROM users WHERE id = $1', [userId]);
   return rows.length ? rows[0].theme : 'holo';
