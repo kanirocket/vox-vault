@@ -31,34 +31,36 @@ export function App() {
 
   useEffect(() => { initAuth(); }, [initAuth]);
 
-  const rootStyle: CSSProperties = {
-    position: 'relative', width: '100%', height: '100vh', display: 'flex', overflow: 'hidden',
-    fontFamily: "'Noto Sans JP',sans-serif", color: '#fff', background: 'var(--bg)',
+  // theme CSS variables (--accent, --glow, --bg, …) must stay inline so they
+  // cascade onto the root element and drive the Tailwind color tokens.
+  const themeStyle: CSSProperties = {
+    fontFamily: "'Noto Sans JP',sans-serif", background: 'var(--bg)',
     ...(THEMES[theme] as CSSProperties),
   };
 
   // gate on auth: wait for the initial session check, then require a user
   if (!authReady) {
-    return <div style={{ ...rootStyle, display: 'grid', placeItems: 'center' }}><div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.4)' }}>LOADING…</div></div>;
+    return (
+      <div className="relative w-full h-screen grid place-items-center overflow-hidden text-white" style={themeStyle}>
+        <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/40">LOADING…</div>
+      </div>
+    );
   }
   if (!user) return <Login />;
 
   return (
-    <div style={rootStyle}>
+    <div className="relative w-full h-screen flex overflow-hidden text-white" style={themeStyle}>
       <Sidebar />
 
       {/* overlay backdrop — mobile only, shown when sidebar is open */}
       {isMobile && sidebarOpen && (
-        <div
-          onClick={closeSidebar}
-          style={{ position: 'fixed', inset: 0, zIndex: 190, background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(2px)' }}
-        />
+        <div onClick={closeSidebar} className="fixed inset-0 z-[190] bg-black/55 backdrop-blur-[2px]" />
       )}
 
       <Background />
-      <main style={{ position: 'relative', zIndex: 4, flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <main className="relative z-[4] flex-1 h-screen flex flex-col overflow-hidden min-w-0">
         <Header />
-        <div onClick={clearPending} style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px 14px 32px' : '24px 34px 40px' }}>
+        <div onClick={clearPending} className={`flex-1 overflow-y-auto ${isMobile ? 'px-[14px] pt-4 pb-8' : 'px-[34px] pt-6 pb-10'}`}>
           {booted && <Screen />}
         </div>
       </main>

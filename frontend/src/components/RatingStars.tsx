@@ -17,13 +17,14 @@ export function RatingStars({ rating, onRate, size = 13 }: Props) {
               key={n}
               onClick={() => onRate(n)}
               title={`歌える度 ${n}`}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: size, padding: '0 1px', lineHeight: 1, color }}
+              className="bg-transparent border-none cursor-pointer leading-none px-px"
+              style={{ fontSize: size, color }}
             >
               ★
             </button>
           );
         }
-        return <span key={n} style={{ fontSize: size - 1, color }}>★</span>;
+        return <span key={n} className="leading-none" style={{ fontSize: size - 1, color }}>★</span>;
       })}
     </>
   );

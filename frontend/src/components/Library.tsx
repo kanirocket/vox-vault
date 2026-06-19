@@ -43,69 +43,86 @@ export function Library() {
   const gc = showGenre ? '96px 1fr 130px 104px 84px 76px 76px 106px' : '96px 1fr 104px 84px 76px 76px 106px';
   const ar = (k: SortKey) => (sortKey === k ? (sortDir === 'asc' ? '▲' : '▼') : '');
 
-  const vb = (on: boolean) => ({ padding: '7px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', transition: 'background .15s', background: on ? 'rgba(255,255,255,.14)' : 'transparent', color: on ? '#fff' : 'rgba(255,255,255,.4)', display: 'grid', placeItems: 'center' } as const);
+  const vbClass = (on: boolean) =>
+    'px-[9px] py-[7px] rounded-[7px] border-none cursor-pointer transition-[background] duration-150 grid place-items-center ' +
+    (on ? 'bg-white/[.14] text-white' : 'bg-transparent text-white/40');
+  const sortBtn = "bg-transparent border-none text-inherit font-[inherit] cursor-pointer text-left tracking-[1.5px]";
 
   return (
-    <div style={{ animation: 'vvFade 200ms ease' }}>
+    <div className="animate-[vvFade_200ms_ease]">
       {/* toolbar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+      <div className="flex flex-col gap-2.5 mb-[18px]">
         {/* genre chips + favorites filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10 }}>
-          <div style={{ display: 'flex', gap: isMobile ? 3 : 8, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
+        <div className={`flex items-center ${isMobile ? 'gap-1.5' : 'gap-2.5'}`}>
+          <div className={`flex flex-wrap flex-1 min-w-0 ${isMobile ? 'gap-[3px]' : 'gap-2'}`}>
             {CHIP_DEFS.map((c) => {
               const on = filter === c.key;
               return (
-                <button key={c.key} onClick={() => setFilter(c.key)} style={{ padding: isMobile ? '6px 6px' : '8px 15px', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontSize: isMobile ? 10.5 : 12.5, fontWeight: 700, transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, border: on ? '1px solid ' + c.color : '1px solid rgba(255,255,255,.1)', background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)', color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)', boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none' }}>{c.label}</button>
+                <button
+                  key={c.key}
+                  onClick={() => setFilter(c.key)}
+                  className={`rounded-[9px] cursor-pointer font-bold transition-all whitespace-nowrap shrink-0 border ${isMobile ? 'px-1.5 py-1.5 text-[10.5px]' : 'px-[15px] py-2 text-[12.5px]'}`}
+                  style={{
+                    borderColor: on ? c.color : 'rgba(255,255,255,.1)',
+                    background: on ? (c.key === 'all' ? 'rgba(255,255,255,.12)' : c.color + '1f') : 'rgba(255,255,255,.03)',
+                    color: on ? (c.key === 'all' ? '#fff' : c.color) : 'rgba(255,255,255,.55)',
+                    boxShadow: on && c.key !== 'all' ? '0 0 16px ' + c.color + '44' : 'none',
+                  }}
+                >{c.label}</button>
               );
             })}
           </div>
-          <button onClick={toggleFavOnly} title={favOnly ? 'お気に入りフィルター解除' : 'お気に入りのみ表示'} style={{ flexShrink: 0, display: 'grid', placeItems: 'center', padding: isMobile ? '7px' : '8px', borderRadius: 9, cursor: 'pointer', transition: 'all .15s', border: favOnly ? '1px solid #ffd24a' : '1px solid rgba(255,255,255,.1)', background: favOnly ? 'rgba(255,210,74,.14)' : 'rgba(255,255,255,.03)', boxShadow: favOnly ? '0 0 16px rgba(255,210,74,.4)' : 'none' }}><StarIcon size={isMobile ? 17 : 18} fill={favOnly ? '#ffd24a' : 'none'} stroke={favOnly ? '#ffd24a' : 'rgba(255,255,255,.5)'} style={{ filter: favOnly ? 'drop-shadow(0 0 4px #ffd24a)' : 'none' }} /></button>
+          <button
+            onClick={toggleFavOnly}
+            title={favOnly ? 'お気に入りフィルター解除' : 'お気に入りのみ表示'}
+            className={`shrink-0 grid place-items-center rounded-[9px] cursor-pointer transition-all border ${isMobile ? 'p-[7px]' : 'p-2'} ${favOnly ? 'border-[#ffd24a] bg-[rgba(255,210,74,.14)] shadow-[0_0_16px_rgba(255,210,74,.4)]' : 'border-white/10 bg-white/[.03]'}`}
+          ><StarIcon size={isMobile ? 17 : 18} fill={favOnly ? '#ffd24a' : 'none'} stroke={favOnly ? '#ffd24a' : 'rgba(255,255,255,.5)'} style={{ filter: favOnly ? 'drop-shadow(0 0 4px #ffd24a)' : 'none' }} /></button>
         </div>
         {/* search row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', borderRadius: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', flex: 1 }}>
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-[9px] px-[14px] py-[9px] rounded-[10px] bg-white/[.04] border border-white/[.08] flex-1">
             <SearchIcon size={14} stroke="rgba(255,255,255,.45)" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="タイトル・アーティスト検索" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 13, width: '100%' }} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="タイトル・アーティスト検索" className="flex-1 w-full bg-transparent border-none text-white text-[13px]" />
           </div>
-          {!isMobile && <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.45)', whiteSpace: 'nowrap' }}>{lib.length} 件</div>}
-          <button onClick={() => { resetReg(); setScreen('register'); }} title="楽曲を追加" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '9px 12px' : '9px 15px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', color: 'var(--accent)', background: 'var(--accent-soft, rgba(255,255,255,.06))', border: '1px solid var(--accent)', boxShadow: '0 0 16px var(--glow)' }}><PlusIcon size={15} />{!isMobile && '追加'}</button>
-          <div style={{ display: 'flex', gap: 2, padding: 3, borderRadius: 9, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
-            <button onClick={() => setView('list')} style={vb(isListView)} title="リスト"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg></button>
-            <button onClick={() => setView('grid')} style={vb(!isListView)} title="グリッド"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg></button>
+          {!isMobile && <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/45 whitespace-nowrap">{lib.length} 件</div>}
+          <button onClick={() => { resetReg(); setScreen('register'); }} title="楽曲を追加" className={`flex items-center gap-1.5 rounded-[10px] cursor-pointer text-[13px] font-bold whitespace-nowrap text-accent bg-white/[.06] border border-[color:var(--accent)] shadow-[0_0_16px_var(--glow)] ${isMobile ? 'px-3 py-[9px]' : 'px-[15px] py-[9px]'}`}><PlusIcon size={15} />{!isMobile && '追加'}</button>
+          <div className="flex gap-0.5 p-[3px] rounded-[9px] bg-white/[.04] border border-white/[.08]">
+            <button onClick={() => setView('list')} className={vbClass(isListView)} title="リスト"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg></button>
+            <button onClick={() => setView('grid')} className={vbClass(!isListView)} title="グリッド"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg></button>
           </div>
         </div>
       </div>
 
       {/* artist filter banner */}
       {artistFilter && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', borderRadius: 10, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.15)', marginBottom: 14, fontSize: 13 }}>
-          <span style={{ color: 'rgba(255,255,255,.45)', fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 1 }}>ARTIST</span>
-          <span style={{ fontWeight: 700 }}>{artistFilter}</span>
-          <span style={{ color: 'rgba(255,255,255,.35)', fontSize: 12 }}>{lib.length} 件</span>
-          <button onClick={clearArtistFilter} title="フィルターを解除" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.45)', fontSize: 16, padding: '0 2px', lineHeight: 1 }}>✕</button>
+        <div className="flex items-center gap-2.5 px-4 py-[9px] rounded-[10px] bg-white/5 border border-white/15 mb-[14px] text-[13px]">
+          <span className="text-white/45 font-['Share_Tech_Mono',monospace] text-[10px] tracking-[1px]">ARTIST</span>
+          <span className="font-bold">{artistFilter}</span>
+          <span className="text-white/35 text-xs">{lib.length} 件</span>
+          <button onClick={clearArtistFilter} title="フィルターを解除" className="ml-auto bg-transparent border-none cursor-pointer text-white/45 text-base px-0.5 leading-none">✕</button>
         </div>
       )}
 
       {/* listing */}
       {isListView ? (
-        <div style={{ borderRadius: 16, background: 'rgba(255,255,255,.025)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,.07)', overflow: 'hidden' }}>
+        <div className="rounded-2xl bg-white/[.025] backdrop-blur-lg border border-white/[.07] overflow-hidden">
           {!isMobile && (
-            <div style={{ display: 'grid', gridTemplateColumns: gc, alignItems: 'center', gap: 16, padding: '13px 20px', borderBottom: '1px solid rgba(255,255,255,.07)', fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,255,255,.4)' }}>
+            <div className="grid items-center gap-4 px-5 py-[13px] border-b border-white/[.07] font-['Share_Tech_Mono',monospace] text-[10px] tracking-[1.5px] text-white/40" style={{ gridTemplateColumns: gc }}>
               <span />
-              <button onClick={() => toggleSort('title')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>TITLE {ar('title')}</button>
+              <button onClick={() => toggleSort('title')} className={sortBtn}>TITLE {ar('title')}</button>
               {showGenre && <span>GENRE</span>}
-              <button onClick={() => toggleSort('date')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>投稿日 {ar('date')}</button>
-              <button onClick={() => toggleSort('views')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>視聴 {ar('views')}</button>
-              <button onClick={() => toggleSort('plays')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', letterSpacing: 1.5 }}>歌唱 {ar('plays')}</button>
+              <button onClick={() => toggleSort('date')} className={sortBtn}>投稿日 {ar('date')}</button>
+              <button onClick={() => toggleSort('views')} className={sortBtn}>視聴 {ar('views')}</button>
+              <button onClick={() => toggleSort('plays')} className={sortBtn}>歌唱 {ar('plays')}</button>
               <span>歌える度</span>
               <span />
             </div>
           )}
           {lib.map((s) => <LibraryRow key={s.id} s={s} showGenre={showGenre} gridTemplateColumns={gc} />)}
-          {lib.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,.35)', fontSize: 14 }}>見つかりません</div>}
+          {lib.length === 0 && <div className="p-10 text-center text-white/35 text-sm">見つかりません</div>}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill,minmax(160px,1fr))' : 'repeat(auto-fill,minmax(226px,1fr))', gap: isMobile ? 12 : 16 }}>
+        <div className="grid" style={{ gridTemplateColumns: isMobile ? 'repeat(auto-fill,minmax(160px,1fr))' : 'repeat(auto-fill,minmax(226px,1fr))', gap: isMobile ? 12 : 16 }}>
           {lib.map((s) => <SongCard key={s.id} s={s} showGenre={showGenre} />)}
         </div>
       )}

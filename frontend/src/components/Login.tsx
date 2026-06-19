@@ -53,22 +53,25 @@ export function Login() {
   }, [loginWithGoogle]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh', display: 'grid', placeItems: 'center', fontFamily: "'Noto Sans JP',sans-serif", color: '#fff', background: 'radial-gradient(140% 120% at 50% -10%,#0b1126,#04050c 60%)', overflow: 'hidden' }}>
-      <div style={{ position: 'relative', zIndex: 2, width: 'min(92vw,420px)', textAlign: 'center', padding: '44px 34px 40px', borderRadius: 22, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.09)', backdropFilter: 'blur(18px)', boxShadow: '0 0 60px rgba(56,232,255,.12)' }}>
-        <div style={{ width: 62, height: 62, borderRadius: 16, margin: '0 auto 20px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#38e8ff,#7b5bff)', boxShadow: '0 0 30px rgba(56,232,255,.5)' }}>
+    <div
+      className="relative w-full h-screen grid place-items-center overflow-hidden text-white font-['Noto_Sans_JP',sans-serif]"
+      style={{ background: 'radial-gradient(140% 120% at 50% -10%,#0b1126,#04050c 60%)' }}
+    >
+      <div className="relative z-[2] w-[min(92vw,420px)] text-center px-[34px] pt-[44px] pb-10 rounded-[22px] bg-white/[.03] border border-white/[.09] backdrop-blur-lg shadow-[0_0_60px_rgba(56,232,255,.12)]">
+        <div className="w-[62px] h-[62px] rounded-2xl mx-auto mb-5 grid place-items-center bg-[linear-gradient(135deg,#38e8ff,#7b5bff)] shadow-[0_0_30px_rgba(56,232,255,.5)]">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#06070f" strokeWidth="2.4" strokeLinecap="round"><path d="M12 3v12" /><circle cx="9" cy="17" r="3" /><path d="M12 3l7 2v4" /></svg>
         </div>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24, letterSpacing: 1 }}>VOX<span style={{ color: '#38e8ff' }}>//</span>VAULT</div>
-        <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 3, color: 'rgba(255,255,255,.4)', marginTop: 6 }}>KARAOKE ARCHIVE</div>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.55)', lineHeight: 1.8, margin: '26px 0 24px' }}>
+        <div className="font-['Orbitron',sans-serif] font-black text-2xl tracking-[1px]">VOX<span className="text-[#38e8ff]">//</span>VAULT</div>
+        <div className="font-['Share_Tech_Mono',monospace] text-[10px] tracking-[3px] text-white/40 mt-1.5">KARAOKE ARCHIVE</div>
+        <p className="text-[13px] text-white/55 leading-[1.8] mx-0 mt-[26px] mb-6">
           サインインして、あなただけのお気に入り・<br />マイリスト・歌唱記録を管理しましょう。
         </p>
         {CLIENT_ID ? (
-          <div ref={btnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: 44 }} />
+          <div ref={btnRef} className="flex justify-center min-h-[44px]" />
         ) : (
-          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(255,200,0,.07)', border: '1px solid rgba(255,200,0,.3)', fontSize: 12, color: '#ffd24a', lineHeight: 1.7, textAlign: 'left' }}>
+          <div className="px-4 py-[14px] rounded-[10px] bg-[rgba(255,200,0,.07)] border border-[rgba(255,200,0,.3)] text-xs text-[#ffd24a] leading-[1.7] text-left">
             Google サインインが未設定です。<br />
-            <code style={{ fontFamily: "'Share Tech Mono',monospace" }}>VITE_GOOGLE_CLIENT_ID</code> をビルド時に設定してください。
+            <code className="font-['Share_Tech_Mono',monospace]">VITE_GOOGLE_CLIENT_ID</code> をビルド時に設定してください。
           </div>
         )}
       </div>

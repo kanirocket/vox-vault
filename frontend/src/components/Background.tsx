@@ -2,11 +2,26 @@
 export function Background() {
   return (
     <>
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)', backgroundSize: '64px 64px', animation: 'vvGrid 8s linear infinite', WebkitMaskImage: 'radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 100%)', maskImage: 'radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 100%)' }} />
-      <div style={{ position: 'absolute', top: -200, left: -160, width: 620, height: 620, zIndex: 0, pointerEvents: 'none', borderRadius: '50%', background: 'radial-gradient(circle,var(--glow),transparent 70%)', filter: 'blur(40px)', animation: 'vvFloat 18s ease-in-out infinite' }} />
-      <div style={{ position: 'absolute', bottom: -260, right: -120, width: 560, height: 560, zIndex: 0, pointerEvents: 'none', borderRadius: '50%', background: 'radial-gradient(circle,var(--glow2),transparent 70%)', filter: 'blur(50px)', animation: 'vvFloat2 22s ease-in-out infinite' }} />
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(180deg,transparent,rgba(255,255,255,.04),transparent)', height: '40%', animation: 'vvScan 9s linear infinite', opacity: 0.5 }} />
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: 'radial-gradient(120% 80% at 50% 50%,transparent 50%,rgba(2,3,8,.7) 100%)' }} />
+      <div
+        className="absolute inset-0 z-0 pointer-events-none animate-[vvGrid_8s_linear_infinite]"
+        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)', backgroundSize: '64px 64px', WebkitMaskImage: 'radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 100%)', maskImage: 'radial-gradient(120% 90% at 50% 0%,#000 30%,transparent 100%)' }}
+      />
+      <div
+        className="absolute -top-[200px] -left-[160px] w-[620px] h-[620px] z-0 pointer-events-none rounded-full blur-[40px] animate-[vvFloat_18s_ease-in-out_infinite]"
+        style={{ background: 'radial-gradient(circle,var(--glow),transparent 70%)' }}
+      />
+      <div
+        className="absolute -bottom-[260px] -right-[120px] w-[560px] h-[560px] z-0 pointer-events-none rounded-full blur-[50px] animate-[vvFloat2_22s_ease-in-out_infinite]"
+        style={{ background: 'radial-gradient(circle,var(--glow2),transparent 70%)' }}
+      />
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none h-2/5 opacity-50 animate-[vvScan_9s_linear_infinite]"
+        style={{ background: 'linear-gradient(180deg,transparent,rgba(255,255,255,.04),transparent)' }}
+      />
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{ background: 'radial-gradient(120% 80% at 50% 50%,transparent 50%,rgba(2,3,8,.7) 100%)' }}
+      />
     </>
   );
 }

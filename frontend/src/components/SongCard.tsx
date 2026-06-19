@@ -13,43 +13,43 @@ export function SongCard({ s, showGenre, height = 128 }: Props) {
   const { filterArtist, openAddToList, toggleFav, incPlays, rateSong } = useStore();
 
   return (
-    <div data-hover="card" style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', transition: 'all .15s' }}>
-      <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ display: 'block', position: 'relative', width: '100%', height, padding: 0, border: 'none', cursor: 'pointer', background: 'none' }}>
+    <div data-hover="card" className="rounded-2xl overflow-hidden bg-white/[.03] border border-white/[.08] transition-all">
+      <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" className="block relative w-full p-0 border-none cursor-pointer bg-transparent" style={{ height }}>
         <div style={thumbBg(s.color)} />
-        {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-        <span style={{ position: 'absolute', right: 6, bottom: 5, fontFamily: "'Share Tech Mono',monospace", fontSize: 10, padding: '2px 5px', borderRadius: 3, background: 'rgba(0,0,0,.75)' }}>{s.dur}</span>
-        {showGenre && <div style={{ position: 'absolute', left: 8, top: 8 }}><span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span></div>}
+        {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}
+        <span className="absolute right-1.5 bottom-[5px] font-['Share_Tech_Mono',monospace] text-[10px] px-[5px] py-0.5 rounded-[3px] bg-black/75">{s.dur}</span>
+        {showGenre && <div className="absolute left-2 top-2"><span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span></div>}
       </button>
-      <div style={{ padding: '12px 14px 14px' }}>
-        <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ fontSize: 14, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', width: '100%', transition: 'color .15s', display: 'block' }}>{s.title}</button>
+      <div className="px-[14px] pt-3 pb-[14px]">
+        <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" className="block w-full text-left text-sm font-bold overflow-hidden text-ellipsis whitespace-nowrap bg-transparent border-none cursor-pointer text-white p-0 transition-colors">{s.title}</button>
         {s.artists.length > 1 ? (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+          <div className="flex flex-wrap gap-1 mt-0.5">
             {s.artists.map((a) => (
-              <button key={a} onClick={() => filterArtist(a)} style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', padding: '1px 6px', borderRadius: 4, border: '1px solid rgba(255,255,255,.15)', background: 'rgba(255,255,255,.04)', whiteSpace: 'nowrap', cursor: 'pointer', fontFamily: 'inherit', transition: 'color .15s' }}>{a}</button>
+              <button key={a} onClick={() => filterArtist(a)} className="text-[11px] text-white/65 px-1.5 py-px rounded border border-white/15 bg-white/[.04] whitespace-nowrap cursor-pointer transition-colors">{a}</button>
             ))}
           </div>
         ) : (
-          <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 2, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', width: '100%', textAlign: 'left', transition: 'color .15s' }}>{s.artist}</button>
+          <button onClick={() => filterArtist(s.artist)} className="block w-full text-left text-xs text-white/50 mt-0.5 bg-transparent border-none cursor-pointer p-0 overflow-hidden text-ellipsis whitespace-nowrap transition-colors">{s.artist}</button>
         )}
         {s.hasDetail && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5, minWidth: 0 }}>
-            <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'var(--accent)', padding: '1px 5px', borderRadius: 4, border: '1px solid var(--accent)', opacity: 0.8, flexShrink: 0 }}>{s.detailLabel}</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.detailText}</span>
+          <div className="flex items-center gap-1.5 mt-[5px] min-w-0">
+            <span className="font-['Share_Tech_Mono',monospace] text-[9px] text-accent px-[5px] py-px rounded border border-[color:var(--accent)] opacity-80 shrink-0">{s.detailLabel}</span>
+            <span className="text-[11px] text-white/60 overflow-hidden text-ellipsis whitespace-nowrap">{s.detailText}</span>
           </div>
         )}
         {s.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: 5, marginTop: 7, flexWrap: 'wrap' }}>
+          <div className="flex gap-[5px] mt-[7px] flex-wrap">
             {s.tags.map((t) => <span key={t} style={tagChipStyle}>{t}</span>)}
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 8 }}><RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} /></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-          <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'rgba(255,255,255,.4)' }}>{s.dateF}</span>
-          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-            <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'var(--accent)', marginRight: 4 }}>{s.playsF}</span>
-            <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リスト追加" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, borderRadius: 5, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={14} /></button>
-            <button onClick={() => toggleFav(s.id)} title="お気に入り" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><StarIcon size={16} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 6px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
-            <button onClick={() => incPlays(s.id)} title="歌唱 +1" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, borderRadius: 5, color: 'rgba(255,255,255,.35)' }}><MicIcon size={14} /></button>
+        <div className="flex items-center gap-1 mt-2"><RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} /></div>
+        <div className="flex justify-between items-center mt-1.5">
+          <span className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/40">{s.dateF}</span>
+          <div className="flex gap-[3px] items-center">
+            <span className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent mr-1">{s.playsF}</span>
+            <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リスト追加" className="bg-transparent border-none cursor-pointer p-[3px] rounded-[5px] text-white/35"><PlusIcon size={14} /></button>
+            <button onClick={() => toggleFav(s.id)} title="お気に入り" className="bg-transparent border-none cursor-pointer p-[3px]"><StarIcon size={16} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 6px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+            <button onClick={() => incPlays(s.id)} title="歌唱 +1" className="bg-transparent border-none cursor-pointer p-[3px] rounded-[5px] text-white/35"><MicIcon size={14} /></button>
           </div>
         </div>
       </div>

@@ -29,42 +29,42 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
 
   if (isMobile) {
     // larger touch targets for the inline actions
-    const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: 10, borderRadius: 8, lineHeight: 1, display: 'grid', placeItems: 'center', flexShrink: 0 } as const;
-    const menuItem = { display: 'flex', alignItems: 'center', gap: 11, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '13px 16px', fontFamily: 'inherit', fontSize: 14, color: '#fff', textAlign: 'left' as const };
+    const iconBtn = 'bg-transparent border-none cursor-pointer p-2.5 rounded-lg leading-none grid place-items-center shrink-0';
+    const menuItem = 'flex items-center gap-[11px] w-full bg-transparent border-none cursor-pointer px-4 py-[13px] text-sm text-white text-left';
     return (
-      <div data-hover="row" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
+      <div data-hover="row" className="flex items-center gap-[14px] px-4 py-[11px] border-b border-white/[.04] transition-[background] duration-150">
         {/* thumbnail */}
-        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 96, height: 54, borderRadius: 7, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
+        <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" className="relative w-24 h-[54px] rounded-[7px] overflow-hidden border border-white/10 cursor-pointer p-0 bg-transparent shrink-0">
           <div style={thumbBg(s.color)} />
-          {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+          {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}
         </button>
         {/* info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="flex-1 min-w-0">
           {/* line 1: title (no link) */}
-          <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff' }}>{s.title}</div>
+          <div className="text-lg font-bold whitespace-nowrap overflow-hidden text-ellipsis text-white">{s.title}</div>
           {/* line 2: artist */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
-            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 15, color: 'rgba(255,255,255,.45)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'left' }}>{s.artist}</button>
+          <div className="flex items-center gap-2 mt-[3px]">
+            <button onClick={() => filterArtist(s.artist)} className="flex-1 text-left text-[15px] text-white/45 bg-transparent border-none cursor-pointer p-0 whitespace-nowrap overflow-hidden text-ellipsis">{s.artist}</button>
           </div>
         </div>
         {/* actions */}
         {isPending ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 7, cursor: 'pointer', padding: '9px 14px', fontSize: 15, fontWeight: 700 }}>✓</button>
-            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 7, cursor: 'pointer', padding: '9px 13px', fontSize: 15 }}>✕</button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} className="bg-[rgba(255,80,80,.2)] border border-[rgba(255,100,100,.5)] text-white rounded-[7px] cursor-pointer px-[14px] py-[9px] text-[15px] font-bold">✓</button>
+            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} className="bg-transparent border border-white/15 text-white/60 rounded-[7px] cursor-pointer px-[13px] py-[9px] text-[15px]">✕</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-            <button onClick={() => toggleFav(s.id)} style={iconBtn}><StarIcon size={22} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button onClick={() => toggleFav(s.id)} className={iconBtn}><StarIcon size={22} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 4px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
             {/* overflow menu */}
-            <div ref={menuRef} style={{ position: 'relative' }}>
-              <button onClick={() => setMenuOpen((o) => !o)} title="メニュー" style={{ ...iconBtn, color: 'rgba(255,255,255,.5)' }}><MoreIcon size={22} /></button>
+            <div ref={menuRef} className="relative">
+              <button onClick={() => setMenuOpen((o) => !o)} title="メニュー" className={`${iconBtn} text-white/50`}><MoreIcon size={22} /></button>
               {menuOpen && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 168, background: 'rgba(20,22,34,.98)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,.5)', overflow: 'hidden', zIndex: 20, animation: 'vvPop 120ms ease' }}>
-                  <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'var(--accent)' }}><MicIcon size={17} />歌唱 +1</button>
-                  <button onClick={() => { showUnsing(s.id); setMenuOpen(false); }} style={menuItem}><MicIcon size={17} /><span style={{ flex: 1 }}>歌唱回数</span><span style={{ fontFamily: "'Share Tech Mono',monospace", color: 'var(--accent)' }}>{s.playsF}</span></button>
-                  <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} style={menuItem}><PlusIcon size={17} />リストに追加</button>
-                  <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} style={{ ...menuItem, color: 'rgba(255,120,120,.95)' }}><TrashIcon size={16} />削除</button>
+                <div className="absolute top-full right-0 mt-1 min-w-[168px] bg-[rgba(20,22,34,.98)] border border-white/12 rounded-[10px] shadow-[0_8px_28px_rgba(0,0,0,.5)] overflow-hidden z-20 animate-[vvPop_120ms_ease]">
+                  <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} className={`${menuItem} !text-accent`}><MicIcon size={17} />歌唱 +1</button>
+                  <button onClick={() => { showUnsing(s.id); setMenuOpen(false); }} className={menuItem}><MicIcon size={17} /><span className="flex-1">歌唱回数</span><span className="font-['Share_Tech_Mono',monospace] text-accent">{s.playsF}</span></button>
+                  <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} className={menuItem}><PlusIcon size={17} />リストに追加</button>
+                  <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} className={`${menuItem} !text-[rgba(255,120,120,.95)]`}><TrashIcon size={16} />削除</button>
                 </div>
               )}
             </div>
@@ -75,55 +75,55 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
   }
 
   return (
-    <div data-hover="row" style={{ display: 'grid', gridTemplateColumns, alignItems: 'center', gap: 16, padding: '11px 20px', borderBottom: '1px solid rgba(255,255,255,.04)', transition: 'background .15s' }}>
-      <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" style={{ position: 'relative', width: 96, height: 54, borderRadius: 7, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)', cursor: 'pointer', padding: 0, background: 'none', flexShrink: 0 }}>
+    <div data-hover="row" className="grid items-center gap-4 px-5 py-[11px] border-b border-white/[.04] transition-[background] duration-150" style={{ gridTemplateColumns }}>
+      <button onClick={() => window.open(s.url, '_blank')} title="YouTubeで開く" className="relative w-24 h-[54px] rounded-[7px] overflow-hidden border border-white/10 cursor-pointer p-0 bg-transparent shrink-0">
         <div style={thumbBg(s.color)} />
-        {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-        <span style={{ position: 'absolute', right: 4, bottom: 3, fontFamily: "'Share Tech Mono',monospace", fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(0,0,0,.7)', color: '#fff' }}>{s.dur}</span>
+        {s.thumbImg && <img src={s.thumbImg} loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} className="absolute inset-0 w-full h-full object-cover" />}
+        <span className="absolute right-1 bottom-[3px] font-['Share_Tech_Mono',monospace] text-[9px] px-1 py-px rounded-[3px] bg-black/70 text-white">{s.dur}</span>
       </button>
-      <div style={{ minWidth: 0 }}>
-        <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, textAlign: 'left', maxWidth: '100%', transition: 'color .15s', display: 'block' }}>{s.title}</button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 2, minWidth: 0 }}>
+      <div className="min-w-0">
+        <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" className="block max-w-full text-left text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis bg-transparent border-none cursor-pointer text-white p-0 transition-colors">{s.title}</button>
+        <div className="flex items-center gap-[7px] mt-0.5 min-w-0">
           {s.artists.length > 1 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, minWidth: 0 }}>
+            <div className="flex flex-wrap gap-1 min-w-0">
               {s.artists.map((a) => (
-                <button key={a} onClick={() => filterArtist(a)} style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', padding: '1px 6px', borderRadius: 4, border: '1px solid rgba(255,255,255,.15)', background: 'rgba(255,255,255,.04)', whiteSpace: 'nowrap', cursor: 'pointer', fontFamily: 'inherit', transition: 'color .15s' }}>{a}</button>
+                <button key={a} onClick={() => filterArtist(a)} className="text-[11px] text-white/65 px-1.5 py-px rounded border border-white/15 bg-white/[.04] whitespace-nowrap cursor-pointer transition-colors">{a}</button>
               ))}
             </div>
           ) : (
-            <button onClick={() => filterArtist(s.artist)} style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'color .15s' }}>{s.artist}</button>
+            <button onClick={() => filterArtist(s.artist)} className="text-xs text-white/50 bg-transparent border-none cursor-pointer p-0 whitespace-nowrap overflow-hidden text-ellipsis transition-colors">{s.artist}</button>
           )}
           {s.hasDetail && (
             <>
-              <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'var(--accent)', padding: '1px 5px', borderRadius: 4, border: '1px solid var(--accent)', flexShrink: 0, opacity: 0.8 }}>{s.detailLabel}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.detailText}</span>
+              <span className="font-['Share_Tech_Mono',monospace] text-[9px] text-accent px-[5px] py-px rounded border border-[color:var(--accent)] shrink-0 opacity-80">{s.detailLabel}</span>
+              <span className="text-xs text-white/60 whitespace-nowrap overflow-hidden text-ellipsis">{s.detailText}</span>
             </>
           )}
         </div>
         {s.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
+          <div className="flex gap-[5px] mt-[5px] flex-wrap">
             {s.tags.map((t) => <span key={t} style={tagChipStyle}>{t}</span>)}
           </div>
         )}
       </div>
       {showGenre && <div><span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span></div>}
-      <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.6)' }}>{s.dateF}</div>
-      <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.55)' }}>{s.viewsF}</div>
-      <button onClick={() => showUnsing(s.id)} title="クリックで取り消し" style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 13, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 2, justifySelf: 'start' }}>{s.playsF}</button>
-      <div style={{ display: 'flex', alignItems: 'center' }}><RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} /></div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'flex-end' }}>
+      <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/60">{s.dateF}</div>
+      <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/55">{s.viewsF}</div>
+      <button onClick={() => showUnsing(s.id)} title="クリックで取り消し" className="justify-self-start font-['Share_Tech_Mono',monospace] text-[13px] text-accent bg-transparent border-none cursor-pointer p-0 underline decoration-dotted underline-offset-2">{s.playsF}</button>
+      <div className="flex items-center"><RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} /></div>
+      <div className="flex items-center gap-[3px] justify-end">
         {isPending ? (
           <>
-            <span style={{ fontSize: 10, color: 'rgba(255,100,100,.9)', marginRight: 2, whiteSpace: 'nowrap' }}>削除?</span>
-            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} title="確認" style={{ background: 'rgba(255,80,80,.2)', border: '1px solid rgba(255,100,100,.5)', color: '#fff', borderRadius: 6, cursor: 'pointer', padding: '4px 7px', fontSize: 11, fontWeight: 700 }}>✓</button>
-            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} title="キャンセル" style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 6, cursor: 'pointer', padding: '4px 7px', fontSize: 12 }}>✕</button>
+            <span className="text-[10px] text-[rgba(255,100,100,.9)] mr-0.5 whitespace-nowrap">削除?</span>
+            <button onClick={(e) => { e.stopPropagation(); confirmDel(s.id); }} title="確認" className="bg-[rgba(255,80,80,.2)] border border-[rgba(255,100,100,.5)] text-white rounded-md cursor-pointer px-[7px] py-1 text-[11px] font-bold">✓</button>
+            <button onClick={(e) => { e.stopPropagation(); cancelDel(); }} title="キャンセル" className="bg-transparent border border-white/15 text-white/60 rounded-md cursor-pointer px-[7px] py-1 text-xs">✕</button>
           </>
         ) : (
           <>
-            <button onClick={() => toggleFav(s.id)} data-hover="iconbtn" title="お気に入り" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6 }}><StarIcon size={17} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 6px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
-            <button onClick={() => incPlays(s.id)} data-hover="iconbtn" title="歌唱 +1" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'rgba(255,255,255,.35)' }}><MicIcon size={15} /></button>
-            <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リストに追加" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'rgba(255,255,255,.35)' }}><PlusIcon size={15} /></button>
-            <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} data-hover="iconbtn" title="削除" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'rgba(255,255,255,.3)' }}><TrashIcon size={14} /></button>
+            <button onClick={() => toggleFav(s.id)} data-hover="iconbtn" title="お気に入り" className="bg-transparent border-none cursor-pointer p-1 rounded-md"><StarIcon size={17} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 6px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
+            <button onClick={() => incPlays(s.id)} data-hover="iconbtn" title="歌唱 +1" className="bg-transparent border-none cursor-pointer p-1 rounded-md text-white/35"><MicIcon size={15} /></button>
+            <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リストに追加" className="bg-transparent border-none cursor-pointer p-1 rounded-md text-white/35"><PlusIcon size={15} /></button>
+            <button onClick={(e) => { e.stopPropagation(); startDel(s.id); }} data-hover="iconbtn" title="削除" className="bg-transparent border-none cursor-pointer p-1 rounded-md text-white/30"><TrashIcon size={14} /></button>
           </>
         )}
       </div>

@@ -1,10 +1,10 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store';
 import { GENRES } from '../constants';
 import type { Playlist } from '../types';
 
-const overlay: CSSProperties = { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(6px)' };
-const card: CSSProperties = { borderRadius: 18, background: 'rgba(12,14,28,.95)', border: '1px solid rgba(255,255,255,.12)', padding: 26, animation: 'vvPop 200ms ease', boxShadow: '0 0 60px rgba(0,0,0,.6)' };
+const overlay = 'fixed inset-0 z-[200] flex items-center justify-center bg-black/65 backdrop-blur-[6px]';
+const card = 'rounded-[18px] bg-[rgba(12,14,28,.95)] border border-white/12 animate-[vvPop_200ms_ease] shadow-[0_0_60px_rgba(0,0,0,.6)]';
 
 function firstCover(l: Playlist, songs: ReturnType<typeof useStore.getState>['songs']): string {
   const s = songs.find((x) => x.id === l.songIds[0]);
@@ -16,30 +16,30 @@ function AddToListModal() {
   if (addToListSong === null) return null;
   const songObj = songs.find((s) => s.id === addToListSong);
   return (
-    <div style={overlay} onClick={closeAddToList}>
-      <div style={{ ...card, width: 400 }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 17, fontWeight: 900 }}>リストに追加</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>「{songObj?.title || ''}」</div>
+    <div className={overlay} onClick={closeAddToList}>
+      <div className={`${card} w-[400px] p-[26px]`} onClick={(e) => e.stopPropagation()}>
+        <div className="mb-[18px]">
+          <div className="text-[17px] font-black">リストに追加</div>
+          <div className="text-xs text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">「{songObj?.title || ''}」</div>
         </div>
         {lists.map((l) => {
           const already = l.songIds.includes(addToListSong);
           const cv = firstCover(l, songs);
           return (
-            <button key={l.id} onClick={() => toggleSongInList(addToListSong, l.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 14px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, textAlign: 'left', marginBottom: 8, border: already ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,.1)', background: already ? 'rgba(34,211,238,.07)' : 'rgba(255,255,255,.03)', color: already ? 'var(--accent)' : '#fff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 12, height: 12, borderRadius: 3, background: cv, boxShadow: `0 0 7px ${cv}` }} />
-                <span style={{ fontSize: 13, fontWeight: 700 }}>{l.name}</span>
+            <button key={l.id} onClick={() => toggleSongInList(addToListSong, l.id)} className="flex items-center justify-between w-full px-[14px] py-3 rounded-[10px] cursor-pointer text-[13px] font-semibold text-left mb-2 border" style={{ borderColor: already ? 'var(--accent)' : 'rgba(255,255,255,.1)', background: already ? 'rgba(34,211,238,.07)' : 'rgba(255,255,255,.03)', color: already ? 'var(--accent)' : '#fff' }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-3 h-3 rounded-[3px]" style={{ background: cv, boxShadow: `0 0 7px ${cv}` }} />
+                <span className="text-[13px] font-bold">{l.name}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, opacity: 0.5 }}>{l.songIds.length}曲</span>
-                <span style={{ color: already ? 'var(--accent)' : 'rgba(255,255,255,.2)', fontSize: 15, fontWeight: 700 }}>✓</span>
+              <div className="flex items-center gap-2">
+                <span className="font-['Share_Tech_Mono',monospace] text-[11px] opacity-50">{l.songIds.length}曲</span>
+                <span className="text-[15px] font-bold" style={{ color: already ? 'var(--accent)' : 'rgba(255,255,255,.2)' }}>✓</span>
               </div>
             </button>
           );
         })}
-        <button onClick={openCreateList} style={{ width: '100%', marginTop: 10, padding: 11, borderRadius: 10, background: 'none', border: '1px dashed rgba(255,255,255,.2)', color: 'rgba(255,255,255,.55)', fontSize: 13, cursor: 'pointer', transition: 'all .15s' }}>＋ 新しいリストを作成</button>
-        <button onClick={closeAddToList} style={{ width: '100%', marginTop: 8, padding: 10, borderRadius: 10, background: 'none', border: 'none', color: 'rgba(255,255,255,.4)', fontSize: 13, cursor: 'pointer' }}>閉じる</button>
+        <button onClick={openCreateList} className="w-full mt-2.5 p-[11px] rounded-[10px] bg-transparent border border-dashed border-white/20 text-white/55 text-[13px] cursor-pointer transition-all">＋ 新しいリストを作成</button>
+        <button onClick={closeAddToList} className="w-full mt-2 p-2.5 rounded-[10px] bg-transparent border-none text-white/40 text-[13px] cursor-pointer">閉じる</button>
       </div>
     </div>
   );
@@ -52,16 +52,16 @@ function CreateListModal() {
   const valid = !!name.trim();
   const submit = () => { if (valid) { submitNewList(name); setName(''); } };
   return (
-    <div style={overlay} onClick={() => { cancelCreateList(); setName(''); }}>
-      <div style={{ ...card, width: 400, padding: 28 }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>新しいマイリスト</div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 20 }}>リスト名を入力してください</div>
-        <div style={{ padding: '3px 16px', borderRadius: 11, background: 'rgba(0,0,0,.4)', border: '1px solid var(--accent)', boxShadow: '0 0 20px var(--glow)' }}>
-          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="例：深夜のセトリ" style={{ width: '100%', padding: '12px 0', background: 'none', border: 'none', color: '#fff', fontSize: 15, fontWeight: 700 }} />
+    <div className={overlay} onClick={() => { cancelCreateList(); setName(''); }}>
+      <div className={`${card} w-[400px] p-7`} onClick={(e) => e.stopPropagation()}>
+        <div className="text-lg font-black mb-1.5">新しいマイリスト</div>
+        <div className="text-[13px] text-white/50 mb-5">リスト名を入力してください</div>
+        <div className="px-4 py-[3px] rounded-[11px] bg-black/40 border border-[color:var(--accent)] shadow-[0_0_20px_var(--glow)]">
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="例：深夜のセトリ" className="w-full py-3 bg-transparent border-none text-white text-[15px] font-bold" />
         </div>
-        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-          <button onClick={() => { cancelCreateList(); setName(''); }} style={{ flex: 1, padding: 13, borderRadius: 11, background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.7)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>キャンセル</button>
-          <button onClick={submit} style={{ flex: 1, padding: 13, borderRadius: 11, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#06070f', background: valid ? 'linear-gradient(135deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.2)', boxShadow: valid ? '0 0 22px var(--glow)' : 'none', opacity: valid ? 1 : 0.5 }}>作成する</button>
+        <div className="flex gap-2.5 mt-[18px]">
+          <button onClick={() => { cancelCreateList(); setName(''); }} className="flex-1 p-[13px] rounded-[11px] bg-transparent border border-white/15 text-white/70 text-[13px] font-bold cursor-pointer">キャンセル</button>
+          <button onClick={submit} className="flex-1 p-[13px] rounded-[11px] border-none cursor-pointer font-bold text-sm text-[#06070f]" style={{ background: valid ? 'linear-gradient(135deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.2)', boxShadow: valid ? '0 0 22px var(--glow)' : 'none', opacity: valid ? 1 : 0.5 }}>作成する</button>
         </div>
       </div>
     </div>
@@ -74,23 +74,23 @@ function UnsingModal() {
   const song = songs.find((s) => s.id === unsingPending);
   const sings = song?.sings || [];
   return (
-    <div style={overlay} onClick={closeUnsing}>
-      <div style={{ ...card, width: 420, padding: 28 }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4 }}>歌唱履歴</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 18 }}>「{song?.title || ''}」の歌唱記録</div>
+    <div className={overlay} onClick={closeUnsing}>
+      <div className={`${card} w-[420px] p-7`} onClick={(e) => e.stopPropagation()}>
+        <div className="text-lg font-black mb-1">歌唱履歴</div>
+        <div className="text-xs text-white/50 mb-[18px]">「{song?.title || ''}」の歌唱記録</div>
         {sings.length > 0 ? (
-          <div style={{ maxHeight: 280, overflowY: 'auto', paddingRight: 8 }}>
+          <div className="max-h-[280px] overflow-y-auto pr-2">
             {sings.slice().reverse().map((sing) => (
-              <div key={sing.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', marginBottom: 8 }}>
-                <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.7)' }}>{sing.date.replace(/-/g, '.')}</span>
-                <button onClick={() => undoSing(unsingPending, sing.id)} style={{ background: 'rgba(255,100,100,.15)', border: '1px solid rgba(255,150,150,.3)', color: '#ff6b6b', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>取り消す</button>
+              <div key={sing.id} className="flex items-center justify-between px-[14px] py-2.5 rounded-lg bg-white/[.03] border border-white/[.08] mb-2">
+                <span className="font-['Share_Tech_Mono',monospace] text-xs text-white/70">{sing.date.replace(/-/g, '.')}</span>
+                <button onClick={() => undoSing(unsingPending, sing.id)} className="bg-[rgba(255,100,100,.15)] border border-[rgba(255,150,150,.3)] text-[#ff6b6b] rounded-md px-2.5 py-1 text-xs cursor-pointer font-bold">取り消す</button>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,.35)', fontSize: 13 }}>記録がありません</div>
+          <div className="p-10 text-center text-white/35 text-[13px]">記録がありません</div>
         )}
-        <button onClick={closeUnsing} style={{ width: '100%', marginTop: 16, padding: 11, borderRadius: 11, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: '#06070f', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>閉じる</button>
+        <button onClick={closeUnsing} className="w-full mt-4 p-[11px] rounded-[11px] border-none cursor-pointer font-bold text-[13px] text-[#06070f] bg-[linear-gradient(135deg,var(--accent),var(--accent3))] shadow-[0_0_22px_var(--glow)]">閉じる</button>
       </div>
     </div>
   );

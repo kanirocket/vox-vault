@@ -3,8 +3,10 @@ import { GENRE_KEYS, GENRES } from '../constants';
 import { singCount } from '../utils';
 import type { Genre } from '../types';
 
-const panel: React.CSSProperties = { borderRadius: 16, padding: 22, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(16px)' };
-const capLabel: React.CSSProperties = { fontFamily: "'Share Tech Mono',monospace", fontSize: 11, letterSpacing: 2, color: 'rgba(255,255,255,.45)', marginBottom: 6 };
+const panelBase = 'rounded-2xl bg-white/[.03] border border-white/[.08] backdrop-blur-md';
+const panelClass = `${panelBase} p-[22px]`;
+const panelTight = `${panelBase} px-[22px] py-5`;
+const capClass = "font-['Share_Tech_Mono',monospace] text-[11px] tracking-[2px] text-white/45 mb-1.5";
 
 export function Stats() {
   const { songs, favs, lists, theme } = useStore();
@@ -70,11 +72,11 @@ export function Stats() {
     const pct = cnt / maxHeat;
     const mm = String(dt.getMonth() + 1).padStart(2, '0'), dd = String(dt.getDate()).padStart(2, '0');
     heatCells.push(
-      <div key={i} title={`${mm}/${dd}  ${cnt}回`} style={{ height: 14, borderRadius: 3, background: cnt > 0 ? `rgba(${acRgb},${(0.15 + pct * 0.82).toFixed(2)})` : 'rgba(255,255,255,.06)', boxShadow: cnt > 0 ? `0 0 ${Math.round(pct * 8)}px rgba(${acRgb},.4)` : 'none' }} />,
+      <div key={i} title={`${mm}/${dd}  ${cnt}回`} className="h-[14px] rounded-[3px]" style={{ background: cnt > 0 ? `rgba(${acRgb},${(0.15 + pct * 0.82).toFixed(2)})` : 'rgba(255,255,255,.06)', boxShadow: cnt > 0 ? `0 0 ${Math.round(pct * 8)}px rgba(${acRgb},.4)` : 'none' }} />,
     );
   }
   const heatLegend = [0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-    <div key={i} style={{ width: 18, height: 14, borderRadius: 3, display: 'inline-block', background: p > 0 ? `rgba(${acRgb},${(0.15 + p * 0.82).toFixed(2)})` : 'rgba(255,255,255,.06)' }} />
+    <div key={i} className="w-[18px] h-[14px] rounded-[3px] inline-block" style={{ background: p > 0 ? `rgba(${acRgb},${(0.15 + p * 0.82).toFixed(2)})` : 'rgba(255,255,255,.06)' }} />
   ));
 
   const topSongsMax = Math.max(1, ...songs.map(singCount));
@@ -82,15 +84,15 @@ export function Stats() {
     const cnt = singCount(s);
     const gc = GENRES[s.genre as Genre] || GENRES.artist;
     return (
-      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: gc.color, boxShadow: `0 0 6px ${gc.color}`, flexShrink: 0 }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 5 }}>{s.title}</div>
-          <div style={{ height: 7, borderRadius: 4, background: 'rgba(255,255,255,.07)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: (cnt / topSongsMax * 100) + '%', borderRadius: 4, background: `linear-gradient(90deg,${gc.color}77,${gc.color})`, boxShadow: `0 0 8px ${gc.color}44` }} />
+      <div key={s.id} className="flex items-center gap-2.5 mb-3">
+        <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: gc.color, boxShadow: `0 0 6px ${gc.color}` }} />
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis mb-[5px]">{s.title}</div>
+          <div className="h-[7px] rounded bg-white/[.07] overflow-hidden">
+            <div className="h-full rounded" style={{ width: (cnt / topSongsMax * 100) + '%', background: `linear-gradient(90deg,${gc.color}77,${gc.color})`, boxShadow: `0 0 8px ${gc.color}44` }} />
           </div>
         </div>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 13, color: 'var(--accent)', flexShrink: 0, minWidth: 22, textAlign: 'right' }}>{cnt}</span>
+        <span className="font-['Orbitron',sans-serif] font-bold text-[13px] text-accent shrink-0 min-w-[22px] text-right">{cnt}</span>
       </div>
     );
   });
@@ -106,67 +108,67 @@ export function Stats() {
   const dailyAreaPath = dailyLinePath + ` L${(DW - Dp).toFixed(1)} ${DH - Dp} L${Dp} ${DH - Dp} Z`;
 
   return (
-    <div style={{ animation: 'vvFade 200ms ease' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 18 }}>
+    <div className="animate-[vvFade_200ms_ease]">
+      <div className="grid grid-cols-4 gap-4 mb-[18px]">
         {statCards.map((k) => (
-          <div key={k.en} style={{ borderRadius: 15, padding: '18px 20px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', right: -14, top: -14, width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle,var(--glow),transparent 70%)' }} />
-            <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, letterSpacing: 1.5, color: 'rgba(255,255,255,.4)' }}>{k.en}</div>
-            <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 34, color: '#fff', margin: '8px 0 3px', lineHeight: 1 }}>{k.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--accent)' }}>{k.label}</div>
+          <div key={k.en} className="rounded-[15px] px-5 py-[18px] bg-white/[.03] border border-white/[.08] backdrop-blur-md relative overflow-hidden">
+            <div className="absolute -right-[14px] -top-[14px] w-[70px] h-[70px] rounded-full" style={{ background: 'radial-gradient(circle,var(--glow),transparent 70%)' }} />
+            <div className="font-['Share_Tech_Mono',monospace] text-[10px] tracking-[1.5px] text-white/40">{k.en}</div>
+            <div className="font-['Orbitron',sans-serif] font-black text-[34px] text-white mt-2 mb-[3px] leading-none">{k.value}</div>
+            <div className="text-xs text-accent">{k.label}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.4fr', gap: 16, marginBottom: 16 }}>
-        <div style={panel}>
-          <div style={capLabel}>GENRE BREAKDOWN</div>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 18 }}>ジャンル比率</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
-            <div style={{ position: 'relative', width: 180, height: 180, flexShrink: 0 }}>
-              <svg viewBox="0 0 180 180" style={{ width: 180, height: 180, transform: 'rotate(-90deg)' }}>
+      <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: '1.1fr 1.4fr' }}>
+        <div className={panelClass}>
+          <div className={capClass}>GENRE BREAKDOWN</div>
+          <div className="text-[15px] font-bold mb-[18px]">ジャンル比率</div>
+          <div className="flex items-center gap-[26px]">
+            <div className="relative w-[180px] h-[180px] shrink-0">
+              <svg viewBox="0 0 180 180" className="w-[180px] h-[180px] -rotate-90">
                 <circle cx="90" cy="90" r="70" style={{ fill: 'none', stroke: 'rgba(255,255,255,.06)', strokeWidth: 18 }} />
                 {donut.map((seg) => <circle key={seg.genre} cx="90" cy="90" r="70" strokeDasharray={seg.dash} strokeDashoffset={seg.offset} style={{ fill: 'none', stroke: seg.color, strokeWidth: 18 }} />)}
               </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 30 }}>{total}</div>
-                <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, letterSpacing: 1.5, color: 'rgba(255,255,255,.4)', marginTop: 3 }}>TRACKS</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="font-['Orbitron',sans-serif] font-black text-[30px]">{total}</div>
+                <div className="font-['Share_Tech_Mono',monospace] text-[9px] tracking-[1.5px] text-white/40 mt-[3px]">TRACKS</div>
               </div>
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="flex-1 flex flex-col gap-3">
               {donut.map((seg) => (
-                <div key={seg.genre} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: seg.color, boxShadow: '0 0 9px ' + seg.color, flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 13 }}>{seg.label}</span>
-                  <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,.5)' }}>{seg.count}曲</span>
-                  <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 14, width: 42, textAlign: 'right', color: seg.color }}>{seg.pct}%</span>
+                <div key={seg.genre} className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ background: seg.color, boxShadow: '0 0 9px ' + seg.color }} />
+                  <span className="flex-1 text-[13px]">{seg.label}</span>
+                  <span className="font-['Share_Tech_Mono',monospace] text-xs text-white/50">{seg.count}曲</span>
+                  <span className="font-['Orbitron',sans-serif] font-bold text-sm w-[42px] text-right" style={{ color: seg.color }}>{seg.pct}%</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div style={panel}>
-          <div style={capLabel}>MONTHLY REGISTRATIONS</div>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 20 }}>月別 登録数</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 172, paddingBottom: 22, position: 'relative' }}>
+        <div className={panelClass}>
+          <div className={capClass}>MONTHLY REGISTRATIONS</div>
+          <div className="text-[15px] font-bold mb-5">月別 登録数</div>
+          <div className="flex items-end gap-3 h-[172px] pb-[22px] relative">
             {months.map((m, i) => (
-              <div key={m} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 8, position: 'relative' }}>
-                <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'var(--accent)' }}>{mvals[i]}</span>
-                <div style={{ width: '100%', height: (mvals[i] / maxM * 100) + '%', minHeight: 6, borderRadius: '6px 6px 0 0', background: 'linear-gradient(180deg,var(--accent),var(--accent3))', boxShadow: '0 0 14px var(--glow)' }} />
-                <span style={{ position: 'absolute', bottom: -20, fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,.4)' }}>{m}</span>
+              <div key={m} className="flex-1 h-full flex flex-col items-center justify-end gap-2 relative">
+                <span className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent">{mvals[i]}</span>
+                <div className="w-full min-h-[6px] rounded-t-md bg-[linear-gradient(180deg,var(--accent),var(--accent3))] shadow-[0_0_14px_var(--glow)]" style={{ height: (mvals[i] / maxM * 100) + '%' }} />
+                <span className="absolute -bottom-5 font-['Share_Tech_Mono',monospace] text-[9px] text-white/40">{m}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1.1fr', gap: 16 }}>
-        <div style={panel}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-            <div><div style={capLabel}>CUMULATIVE GROWTH</div><div style={{ fontSize: 15, fontWeight: 700 }}>アーカイブ累計</div></div>
-            <div style={{ textAlign: 'right' }}><div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 26, color: 'var(--accent)', lineHeight: 1 }}>{total}</div><div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,.4)' }}>TOTAL</div></div>
+      <div className="grid gap-4" style={{ gridTemplateColumns: '1.4fr 1.1fr' }}>
+        <div className={panelClass}>
+          <div className="flex justify-between items-start mb-[18px]">
+            <div><div className={capClass}>CUMULATIVE GROWTH</div><div className="text-[15px] font-bold">アーカイブ累計</div></div>
+            <div className="text-right"><div className="font-['Orbitron',sans-serif] font-black text-[26px] text-accent leading-none">{total}</div><div className="font-['Share_Tech_Mono',monospace] text-[9px] text-white/40">TOTAL</div></div>
           </div>
-          <svg viewBox="0 0 520 160" preserveAspectRatio="none" style={{ width: '100%', height: 160 }}>
+          <svg viewBox="0 0 520 160" preserveAspectRatio="none" className="w-full h-40">
             <line x1="0" y1="40" x2="520" y2="40" style={{ stroke: 'rgba(255,255,255,.05)', strokeWidth: 1 }} />
             <line x1="0" y1="80" x2="520" y2="80" style={{ stroke: 'rgba(255,255,255,.05)', strokeWidth: 1 }} />
             <line x1="0" y1="120" x2="520" y2="120" style={{ stroke: 'rgba(255,255,255,.05)', strokeWidth: 1 }} />
@@ -175,56 +177,56 @@ export function Stats() {
             {pts.map((p, i) => <circle key={i} cx={p[0].toFixed(1)} cy={p[1].toFixed(1)} r="3.5" style={{ fill: 'var(--bg)', stroke: 'var(--accent)', strokeWidth: 2 }} />)}
           </svg>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ ...panel, padding: '20px 22px' }}>
-            <div style={{ ...capLabel, marginBottom: 16 }}>TOP ARTISTS</div>
+        <div className="flex flex-col gap-4">
+          <div className={panelTight}>
+            <div className={`${capClass} !mb-4`}>TOP ARTISTS</div>
             {tops.map((t) => (
-              <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 11 }}>
-                <span style={{ width: 104, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0 }}>{t.name}</span>
-                <div style={{ flex: 1, height: 9, borderRadius: 6, background: 'rgba(255,255,255,.05)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: (t.count / maxA * 100) + '%', borderRadius: 6, background: 'linear-gradient(90deg,var(--accent3),var(--accent))', boxShadow: '0 0 12px var(--glow)' }} />
+              <div key={t.name} className="flex items-center gap-3 mb-[11px]">
+                <span className="w-[104px] text-xs whitespace-nowrap overflow-hidden text-ellipsis shrink-0">{t.name}</span>
+                <div className="flex-1 h-[9px] rounded-md bg-white/5 overflow-hidden">
+                  <div className="h-full rounded-md bg-[linear-gradient(90deg,var(--accent3),var(--accent))] shadow-[0_0_12px_var(--glow)]" style={{ width: (t.count / maxA * 100) + '%' }} />
                 </div>
-                <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 12, color: 'var(--accent)', width: 18, textAlign: 'right' }}>{t.count}</span>
+                <span className="font-['Share_Tech_Mono',monospace] text-xs text-accent w-[18px] text-right">{t.count}</span>
               </div>
             ))}
           </div>
-          <div style={{ ...panel, padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 20 }}>
-            <div style={{ position: 'relative', width: 118, height: 118, flexShrink: 0 }}>
-              <svg viewBox="0 0 140 140" style={{ width: 118, height: 118, transform: 'rotate(-90deg)' }}>
+          <div className={`${panelTight} flex items-center gap-5`}>
+            <div className="relative w-[118px] h-[118px] shrink-0">
+              <svg viewBox="0 0 140 140" className="w-[118px] h-[118px] -rotate-90">
                 <circle cx="70" cy="70" r="56" style={{ fill: 'none', stroke: 'rgba(255,255,255,.06)', strokeWidth: 13 }} />
                 <circle cx="70" cy="70" r="56" strokeDasharray={gaugeDash} style={{ fill: 'none', stroke: 'var(--accent)', strokeWidth: 13, strokeLinecap: 'round', filter: 'drop-shadow(0 0 7px var(--glow))' }} />
               </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 24 }}>{favPct}%</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="font-['Orbitron',sans-serif] font-black text-2xl">{favPct}%</div>
               </div>
             </div>
             <div>
-              <div style={{ ...capLabel, fontSize: 11, letterSpacing: 1.5 }}>FAV RATIO</div>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>お気に入り率</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginTop: 4 }}>{favCount} / {total} 曲</div>
+              <div className="font-['Share_Tech_Mono',monospace] text-[11px] tracking-[1.5px] text-white/45 mb-1.5">FAV RATIO</div>
+              <div className="text-sm font-bold">お気に入り率</div>
+              <div className="text-xs text-white/50 mt-1">{favCount} / {total} 曲</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.55fr 1fr', gap: 16, marginTop: 16 }}>
-        <div style={panel}>
-          <div style={capLabel}>SING CALENDAR</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>歌唱カレンダー</div>
-            <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'rgba(255,255,255,.4)' }}>直近10週 · 70日</div>
+      <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: '1.55fr 1fr' }}>
+        <div className={panelClass}>
+          <div className={capClass}>SING CALENDAR</div>
+          <div className="flex justify-between items-baseline mb-4">
+            <div className="text-[15px] font-bold">歌唱カレンダー</div>
+            <div className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/40">直近10週 · 70日</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>{heatCells}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, justifyContent: 'flex-end' }}>
-            <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,.3)' }}>少</span>{heatLegend}<span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,.3)' }}>多</span>
+          <div className="grid grid-cols-7 gap-1">{heatCells}</div>
+          <div className="flex items-center gap-1.5 mt-3 justify-end">
+            <span className="font-['Share_Tech_Mono',monospace] text-[9px] text-white/30">少</span>{heatLegend}<span className="font-['Share_Tech_Mono',monospace] text-[9px] text-white/30">多</span>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ ...panel, padding: '20px 22px' }}><div style={{ ...capLabel, marginBottom: 16 }}>TOP SONGS</div>{topSongs}</div>
-          <div style={{ ...panel, padding: '20px 22px' }}>
-            <div style={capLabel}>DAILY SINGS</div>
-            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>日別歌唱推移<span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(255,255,255,.4)', marginLeft: 8 }}>直近30日</span></div>
-            <svg viewBox="0 0 520 90" preserveAspectRatio="none" style={{ width: '100%', height: 80 }}>
+        <div className="flex flex-col gap-4">
+          <div className={panelTight}><div className={`${capClass} !mb-4`}>TOP SONGS</div>{topSongs}</div>
+          <div className={panelTight}>
+            <div className={capClass}>DAILY SINGS</div>
+            <div className="text-sm font-bold mb-[14px]">日別歌唱推移<span className="text-[10px] font-normal text-white/40 ml-2">直近30日</span></div>
+            <svg viewBox="0 0 520 90" preserveAspectRatio="none" className="w-full h-20">
               <line x1="0" y1="30" x2="520" y2="30" style={{ stroke: 'rgba(255,255,255,.05)', strokeWidth: 1 }} />
               <line x1="0" y1="60" x2="520" y2="60" style={{ stroke: 'rgba(255,255,255,.05)', strokeWidth: 1 }} />
               <path d={dailyAreaPath} style={{ fill: 'var(--accent)', opacity: 0.14 }} />

@@ -12,18 +12,18 @@ function Stepper({ step }: { step: number }) {
     { n: 3, label: '確認・登録', en: 'CONFIRM' },
   ];
   return (
-    <div style={{ display: 'flex', alignItems: 'center', margin: '6px 0 30px' }}>
+    <div className="flex items-center mt-1.5 mb-[30px]">
       {defs.map((s) => {
         const done = s.n < cur;
         const active = s.n === cur;
         return (
-          <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0, fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 14, color: done || active ? '#06070f' : 'rgba(255,255,255,.5)', background: done || active ? 'linear-gradient(135deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.06)', border: done || active ? 'none' : '1px solid rgba(255,255,255,.12)', boxShadow: active ? '0 0 18px var(--glow)' : 'none' }}>{done ? '✓' : s.n}</div>
-            <div style={{ marginLeft: 11, lineHeight: 1.2 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: done || active ? '#fff' : 'rgba(255,255,255,.5)' }}>{s.label}</div>
-              <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 9, letterSpacing: 1, color: 'rgba(255,255,255,.35)' }}>{s.en}</div>
+          <div key={s.n} className="flex items-center flex-1">
+            <div className="w-[34px] h-[34px] rounded-full grid place-items-center shrink-0 font-['Orbitron',sans-serif] font-bold text-sm" style={{ color: done || active ? '#06070f' : 'rgba(255,255,255,.5)', background: done || active ? 'linear-gradient(135deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.06)', border: done || active ? 'none' : '1px solid rgba(255,255,255,.12)', boxShadow: active ? '0 0 18px var(--glow)' : 'none' }}>{done ? '✓' : s.n}</div>
+            <div className="ml-[11px] leading-tight">
+              <div className="text-[13px] font-bold" style={{ color: done || active ? '#fff' : 'rgba(255,255,255,.5)' }}>{s.label}</div>
+              <div className="font-['Share_Tech_Mono',monospace] text-[9px] tracking-[1px] text-white/35">{s.en}</div>
             </div>
-            <div style={{ flex: 1, height: 2, margin: '0 14px', borderRadius: 2, background: done ? 'linear-gradient(90deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.08)', display: s.n === 3 ? 'none' : 'block' }} />
+            <div className={`flex-1 h-0.5 mx-[14px] rounded-sm ${s.n === 3 ? 'hidden' : 'block'}`} style={{ background: done ? 'linear-gradient(90deg,var(--accent),var(--accent3))' : 'rgba(255,255,255,.08)' }} />
           </div>
         );
       })}
@@ -77,30 +77,30 @@ function Step1() {
   };
 
   return (
-    <div style={{ borderRadius: 18, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(18px)', padding: '42px 40px 46px', textAlign: 'center', animation: 'vvFade 180ms ease' }}>
-      <div style={{ width: 58, height: 58, borderRadius: 15, margin: '0 auto 20px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 30px var(--glow)' }}><SearchIcon size={28} stroke="#06070f" /></div>
-      <h2 style={{ margin: '0 0 8px', fontSize: 21, fontWeight: 900 }}>楽曲を検索して登録</h2>
-      <p style={{ margin: '0 0 26px', fontSize: 13, color: 'rgba(255,255,255,.5)', lineHeight: 1.7 }}>曲名を入力すると YouTube から候補を取得します。<br />サムネイル・アーティスト・投稿日は自動で取り込まれます。</p>
-      <div style={{ display: 'flex', gap: 10, maxWidth: 560, margin: '0 auto' }}>
-        <div ref={boxRef} style={{ flex: 1, position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 18px', borderRadius: 12, background: 'rgba(0,0,0,.35)', border: '1px solid var(--accent)', boxShadow: '0 0 24px var(--glow)' }}>
+    <div className="rounded-[18px] bg-white/[.03] border border-white/[.08] backdrop-blur-lg px-10 pt-[42px] pb-[46px] text-center animate-[vvFade_180ms_ease]">
+      <div className="w-[58px] h-[58px] rounded-[15px] mx-auto mb-5 grid place-items-center bg-[linear-gradient(135deg,var(--accent),var(--accent3))] shadow-[0_0_30px_var(--glow)]"><SearchIcon size={28} stroke="#06070f" /></div>
+      <h2 className="mt-0 mb-2 text-[21px] font-black">楽曲を検索して登録</h2>
+      <p className="mt-0 mb-[26px] text-[13px] text-white/50 leading-[1.7]">曲名を入力すると YouTube から候補を取得します。<br />サムネイル・アーティスト・投稿日は自動で取り込まれます。</p>
+      <div className="flex gap-2.5 max-w-[560px] mx-auto">
+        <div ref={boxRef} className="flex-1 relative">
+          <div className="flex items-center gap-[11px] px-[18px] py-[14px] rounded-xl bg-black/35 border border-[color:var(--accent)] shadow-[0_0_24px_var(--glow)]">
             <SearchIcon size={18} stroke="var(--accent)" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKey} onFocus={() => suggests.length && setOpen(true)} placeholder="例：グリッチ・ハート" autoComplete="off" style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 15 }} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKey} onFocus={() => suggests.length && setOpen(true)} placeholder="例：グリッチ・ハート" autoComplete="off" className="flex-1 bg-transparent border-none text-white text-[15px]" />
           </div>
           {open && suggests.length > 0 && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 30, borderRadius: 12, overflow: 'hidden', background: 'rgba(14,16,26,.98)', border: '1px solid rgba(255,255,255,.12)', boxShadow: '0 12px 34px rgba(0,0,0,.55)', textAlign: 'left', animation: 'vvPop 120ms ease' }}>
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-30 rounded-xl overflow-hidden bg-[rgba(14,16,26,.98)] border border-white/12 shadow-[0_12px_34px_rgba(0,0,0,.55)] text-left animate-[vvPop_120ms_ease]">
               {suggests.map((s, i) => (
-                <button key={s} onMouseEnter={() => setActive(i)} onClick={() => pick(s)} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 16px', background: i === active ? 'rgba(255,255,255,.07)' : 'none', border: 'none', borderTop: i ? '1px solid rgba(255,255,255,.04)' : 'none', cursor: 'pointer', color: '#fff', fontFamily: 'inherit', fontSize: 14, textAlign: 'left' }}>
+                <button key={s} onMouseEnter={() => setActive(i)} onClick={() => pick(s)} className={`flex items-center gap-3 w-full px-4 py-[11px] border-none cursor-pointer text-white text-sm text-left ${i ? 'border-t border-white/[.04]' : ''} ${i === active ? 'bg-white/[.07]' : 'bg-transparent'}`}>
                   <SearchIcon size={14} stroke="rgba(255,255,255,.4)" />
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s}</span>
+                  <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{s}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
-        <button onClick={() => go()} style={{ padding: '0 28px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#06070f', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>検索</button>
+        <button onClick={() => go()} className="px-7 rounded-xl border-none cursor-pointer font-bold text-sm text-[#06070f] bg-[linear-gradient(135deg,var(--accent),var(--accent3))] shadow-[0_0_22px_var(--glow)]">検索</button>
       </div>
-      <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: 'rgba(255,255,255,.3)', marginTop: 18, letterSpacing: 1 }}>YOUTUBE DATA API · v3</div>
+      <div className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/30 mt-[18px] tracking-[1px]">YOUTUBE DATA API · v3</div>
     </div>
   );
 }
@@ -122,20 +122,20 @@ function Step2() {
     if (id) registered.set(id, s.title);
   }
   return (
-    <div style={{ animation: 'vvFade 180ms ease' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,.5)' }}>{regSource === 'youtube' ? 'YOUTUBE RESULTS' : 'SEARCH RESULTS'}</div>
-        <button onClick={() => backStep(1)} style={{ background: 'none', border: '1px solid rgba(255,255,255,.15)', color: 'rgba(255,255,255,.6)', borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer' }}>← 検索に戻る</button>
+    <div className="animate-[vvFade_180ms_ease]">
+      <div className="flex justify-between items-center mb-[14px]">
+        <div className="font-['Share_Tech_Mono',monospace] text-[11px] text-white/50">{regSource === 'youtube' ? 'YOUTUBE RESULTS' : 'SEARCH RESULTS'}</div>
+        <button onClick={() => backStep(1)} className="bg-transparent border border-white/15 text-white/60 rounded-lg px-[14px] py-[7px] text-xs cursor-pointer">← 検索に戻る</button>
       </div>
       {!regLoading && regSource === 'mock' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderRadius: 10, background: 'rgba(255,200,0,.07)', border: '1px solid rgba(255,200,0,.25)', marginBottom: 14 }}>
+        <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-[rgba(255,200,0,.07)] border border-[rgba(255,200,0,.25)] mb-[14px]">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffd24a" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-          <span style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 10, color: '#ffd24a', letterSpacing: 0.5 }}>DEMO MODE — YouTube API キー未設定。以下はサンプル候補です。実際のYouTube検索結果ではありません。</span>
+          <span className="font-['Share_Tech_Mono',monospace] text-[10px] text-[#ffd24a] tracking-[0.5px]">DEMO MODE — YouTube API キー未設定。以下はサンプル候補です。実際のYouTube検索結果ではありません。</span>
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="flex flex-col gap-2.5">
         {regLoading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,.4)', fontFamily: "'Share Tech Mono',monospace", fontSize: 12 }}>SEARCHING…</div>
+          <div className="p-10 text-center text-white/40 font-['Share_Tech_Mono',monospace] text-xs">SEARCHING…</div>
         ) : regCandidates.length > 0 ? (
           regCandidates.map((c, i) => {
             const color = c.thumbColor || '#38e8ff';
@@ -145,28 +145,28 @@ function Step2() {
             const vid = c.videoId || ytId(c.url);
             const isReg = vid != null && registered.has(vid);
             return (
-              <button key={c.videoId || c.title + i} onClick={() => !isReg && selectCand(c)} disabled={isReg} data-hover={isReg ? undefined : 'cand'} title={isReg ? 'すでにライブラリに登録済みです' : undefined} style={{ display: 'grid', gridTemplateColumns: '148px 1fr auto', alignItems: 'center', gap: 16, textAlign: 'left', padding: 11, borderRadius: 14, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', cursor: isReg ? 'not-allowed' : 'pointer', opacity: isReg ? 0.45 : 1, filter: isReg ? 'grayscale(1)' : 'none', transition: 'all .15s' }}>
-                <div style={{ position: 'relative', width: 148, height: 84, borderRadius: 9, overflow: 'hidden', border: '1px solid rgba(255,255,255,.1)' }}>
-                  <div style={{ position: 'absolute', inset: 0, ...thumbBg }} />
-                  <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}><PlayIcon size={22} /></div>
-                  <span style={{ position: 'absolute', right: 5, bottom: 4, fontFamily: "'Share Tech Mono',monospace", fontSize: 10, padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,.75)' }}>{c.dur}</span>
+              <button key={c.videoId || c.title + i} onClick={() => !isReg && selectCand(c)} disabled={isReg} data-hover={isReg ? undefined : 'cand'} title={isReg ? 'すでにライブラリに登録済みです' : undefined} className="grid items-center gap-4 text-left p-[11px] rounded-[14px] bg-white/[.03] border border-white/[.08] transition-all" style={{ gridTemplateColumns: '148px 1fr auto', cursor: isReg ? 'not-allowed' : 'pointer', opacity: isReg ? 0.45 : 1, filter: isReg ? 'grayscale(1)' : 'none' }}>
+                <div className="relative w-[148px] h-[84px] rounded-[9px] overflow-hidden border border-white/10">
+                  <div className="absolute inset-0" style={thumbBg} />
+                  <div className="absolute inset-0 grid place-items-center"><PlayIcon size={22} /></div>
+                  <span className="absolute right-[5px] bottom-1 font-['Share_Tech_Mono',monospace] text-[10px] px-[5px] py-px rounded-[3px] bg-black/75">{c.dur}</span>
                 </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</span>
-                    {isReg && <span style={{ flexShrink: 0, fontFamily: "'Share Tech Mono',monospace", fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: '#ffd24a', background: 'rgba(255,200,0,.12)', border: '1px solid rgba(255,200,0,.4)', borderRadius: 5, padding: '2px 7px' }}>登録済み</span>}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[15px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">{c.title}</span>
+                    {isReg && <span className="shrink-0 font-['Share_Tech_Mono',monospace] text-[10px] font-bold tracking-[0.5px] text-[#ffd24a] bg-[rgba(255,200,0,.12)] border border-[rgba(255,200,0,.4)] rounded-[5px] px-[7px] py-0.5">登録済み</span>}
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 3 }}>{c.channel}</div>
-                  <div style={{ fontFamily: "'Share Tech Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,.4)', marginTop: 5 }}>{c.views} 回視聴 · {c.published}</div>
+                  <div className="text-xs text-white/55 mt-[3px]">{c.channel}</div>
+                  <div className="font-['Share_Tech_Mono',monospace] text-[11px] text-white/40 mt-[5px]">{c.views} 回視聴 · {c.published}</div>
                 </div>
-                <div style={{ padding: '0 8px', display: 'flex', alignItems: 'center', gap: 7, color: isReg ? 'rgba(255,255,255,.4)' : 'var(--accent)', fontFamily: "'Share Tech Mono',monospace", fontSize: 11 }}>{isReg ? '登録済み' : <>選択<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg></>}</div>
+                <div className="px-2 flex items-center gap-[7px] font-['Share_Tech_Mono',monospace] text-[11px]" style={{ color: isReg ? 'rgba(255,255,255,.4)' : 'var(--accent)' }}>{isReg ? '登録済み' : <>選択<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg></>}</div>
               </button>
             );
           })
         ) : (
-          <div style={{ padding: 40, textAlign: 'center' }}>
-            <div style={{ color: 'rgba(255,255,255,.4)', fontFamily: "'Share Tech Mono',monospace", fontSize: 12, marginBottom: 12 }}>NO RESULTS</div>
-            <div style={{ color: 'rgba(255,255,255,.3)', fontSize: 12 }}>「{qShown}」に該当する曲が見つかりませんでした。<br />別の検索語をお試しください。</div>
+          <div className="p-10 text-center">
+            <div className="text-white/40 font-['Share_Tech_Mono',monospace] text-xs mb-3">NO RESULTS</div>
+            <div className="text-white/30 text-xs">「{qShown}」に該当する曲が見つかりませんでした。<br />別の検索語をお試しください。</div>
           </div>
         )}
       </div>
@@ -177,13 +177,13 @@ function Step2() {
 function Step4() {
   const { regSelected, resetReg, setScreen } = useStore();
   return (
-    <div style={{ borderRadius: 18, background: 'rgba(255,255,255,.03)', border: '1px solid var(--accent)', backdropFilter: 'blur(18px)', padding: '48px 40px', textAlign: 'center', boxShadow: '0 0 40px var(--glow)', animation: 'vvPop 220ms ease' }}>
-      <div style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 22px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 34px var(--glow)' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#06070f" strokeWidth="3" strokeLinecap="round"><polyline points="4 12 10 18 20 6" /></svg></div>
-      <h2 style={{ margin: '0 0 8px', fontSize: 21, fontWeight: 900 }}>登録が完了しました</h2>
-      <p style={{ margin: '0 0 28px', fontSize: 14, color: 'rgba(255,255,255,.6)' }}>「{regSelected?.title || ''}」を VAULT に追加しました。</p>
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-        <button onClick={resetReg} style={{ padding: '13px 26px', borderRadius: 11, border: '1px solid rgba(255,255,255,.18)', background: 'none', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>続けて登録</button>
-        <button onClick={() => setScreen('library')} style={{ padding: '13px 26px', borderRadius: 11, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, color: '#06070f', background: 'linear-gradient(135deg,var(--accent),var(--accent3))', boxShadow: '0 0 22px var(--glow)' }}>ライブラリで確認</button>
+    <div className="rounded-[18px] bg-white/[.03] border border-[color:var(--accent)] backdrop-blur-lg px-10 py-12 text-center shadow-[0_0_40px_var(--glow)] animate-[vvPop_220ms_ease]">
+      <div className="w-16 h-16 rounded-full mx-auto mb-[22px] grid place-items-center bg-[linear-gradient(135deg,var(--accent),var(--accent3))] shadow-[0_0_34px_var(--glow)]"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#06070f" strokeWidth="3" strokeLinecap="round"><polyline points="4 12 10 18 20 6" /></svg></div>
+      <h2 className="mt-0 mb-2 text-[21px] font-black">登録が完了しました</h2>
+      <p className="mt-0 mb-7 text-sm text-white/60">「{regSelected?.title || ''}」を VAULT に追加しました。</p>
+      <div className="flex gap-2.5 justify-center">
+        <button onClick={resetReg} className="px-[26px] py-[13px] rounded-[11px] border border-white/[.18] bg-transparent text-white font-bold text-[13px] cursor-pointer">続けて登録</button>
+        <button onClick={() => setScreen('library')} className="px-[26px] py-[13px] rounded-[11px] border-none cursor-pointer font-bold text-[13px] text-[#06070f] bg-[linear-gradient(135deg,var(--accent),var(--accent3))] shadow-[0_0_22px_var(--glow)]">ライブラリで確認</button>
       </div>
     </div>
   );
@@ -192,7 +192,7 @@ function Step4() {
 export function Register() {
   const regStep = useStore((s) => s.regStep);
   return (
-    <div style={{ maxWidth: 880, margin: '0 auto', animation: 'vvFade 200ms ease' }}>
+    <div className="max-w-[880px] mx-auto animate-[vvFade_200ms_ease]">
       <Stepper step={regStep} />
       {regStep === 1 && <Step1 />}
       {regStep === 2 && <Step2 />}

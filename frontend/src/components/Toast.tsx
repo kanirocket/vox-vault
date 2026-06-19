@@ -10,7 +10,11 @@ export function Toast() {
   const toast = useStore((s) => s.toast);
   if (!toast) return null;
   return (
-    <div key={toast.ts} style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 300, padding: '13px 20px', borderRadius: 12, backdropFilter: 'blur(16px)', background: TONE[toast.type] || TONE.success, border: '1px solid rgba(255,255,255,.15)', boxShadow: '0 8px 32px rgba(0,0,0,.4)', fontSize: 13, fontWeight: 700, color: '#fff', animation: 'vvToast 2.6s ease forwards', maxWidth: 340, pointerEvents: 'none' }}>
+    <div
+      key={toast.ts}
+      className="fixed bottom-6 right-6 z-[300] px-5 py-[13px] rounded-xl backdrop-blur-md border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,.4)] text-[13px] font-bold text-white max-w-[340px] pointer-events-none animate-[vvToast_2.6s_ease_forwards]"
+      style={{ background: TONE[toast.type] || TONE.success }}
+    >
       {toast.msg}
     </div>
   );
