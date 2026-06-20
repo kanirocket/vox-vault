@@ -46,7 +46,6 @@ export function SongCard({ s, showGenre, height = 128 }: Props) {
         <div className="flex justify-between items-center mt-1.5">
           <span className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/40">{s.dateF}</span>
           <div className="flex gap-[3px] items-center">
-            <span className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent mr-1">{s.playsF}</span>
             <button onClick={() => openAddToList(s.id)} data-hover="iconbtn" title="リスト追加" className="bg-transparent border-none cursor-pointer p-[3px] rounded-[5px] text-white/35"><PlusIcon size={14} /></button>
             <button onClick={() => toggleFav(s.id)} title="お気に入り" className="bg-transparent border-none cursor-pointer p-[3px]"><StarIcon size={16} fill={s.fav ? s.color : 'none'} stroke={s.fav ? s.color : 'rgba(255,255,255,.35)'} style={{ filter: s.fav ? `drop-shadow(0 0 6px ${s.color})` : 'none', transition: 'all .15s' }} /></button>
             <button onClick={() => incPlays(s.id)} title="歌唱 +1" className="bg-transparent border-none cursor-pointer p-[3px] rounded-[5px] text-white/35"><MicIcon size={14} /></button>

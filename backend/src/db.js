@@ -68,6 +68,13 @@ const SCHEMA = `
     song_id BIGINT NOT NULL REFERENCES songs(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS ratings (
+    user_id BIGINT  NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    song_id BIGINT  NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
+    rating  INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    PRIMARY KEY (user_id, song_id)
+  );
+
   CREATE TABLE IF NOT EXISTS playlists (
     id      BIGINT PRIMARY KEY,
     name    TEXT   NOT NULL,
@@ -115,6 +122,16 @@ export async function initDb() {
   await pool.query(SCHEMA);
   await pool.query(MIGRATIONS);
   await seedIfEmpty(pool);
+  // One-time: move legacy shared song ratings into the per-user ratings table
+  // for the admin. Guarded so it only runs while ratings is still empty.
+  await pool.query(`
+    INSERT INTO ratings (user_id, song_id, rating)
+    SELECT u.id, s.id, s.rating FROM songs s
+    CROSS JOIN users u
+    WHERE s.rating IS NOT NULL AND u.is_admin = TRUE
+      AND NOT EXISTS (SELECT 1 FROM ratings)
+    ON CONFLICT DO NOTHING
+  `);
 }
 
 // ── users / auth ────────────────────────────────────────────────────────────
@@ -154,6 +171,7 @@ export async function upsertUser({ sub, email, name, picture }) {
       await client.query('UPDATE favorites SET user_id=$1 WHERE user_id IS NULL', [user.id]);
       await client.query('UPDATE sings     SET user_id=$1 WHERE user_id IS NULL', [user.id]);
       await client.query('UPDATE playlists SET user_id=$1 WHERE user_id IS NULL', [user.id]);
+      await client.query('INSERT INTO ratings (user_id, song_id, rating) SELECT $1, id, rating FROM songs WHERE rating IS NOT NULL ON CONFLICT DO NOTHING', [user.id]);
     }
     return serializeUser(user);
   });
@@ -162,6 +180,15 @@ export async function upsertUser({ sub, email, name, picture }) {
 export async function getUser(userId) {
   const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
   return rows.length ? serializeUser(rows[0]) : null;
+}
+
+// All registered users with their playlist counts (admin view).
+export async function listUsers() {
+  const { rows } = await pool.query(`
+    SELECT u.*, (SELECT COUNT(*) FROM playlists p WHERE p.user_id = u.id)::int AS playlist_count
+    FROM users u ORDER BY u.created
+  `);
+  return rows.map((r) => ({ ...serializeUser(r), playlistCount: r.playlist_count }));
 }
 
 export async function getUserTheme(userId) {
@@ -176,7 +203,7 @@ export async function setUserTheme(userId, theme) {
 // ── serializers ───────────────────────────────────────────────────────────────
 // plays / lastPlayed are derived from the current user's sing history (sings are
 // per-user). The legacy songs.plays / songs.last_played columns are ignored.
-function serializeSong(row, favSet, sings = []) {
+function serializeSong(row, favSet, sings = [], rating = null) {
   const artists =
     Array.isArray(row.artists) && row.artists.length
       ? row.artists
@@ -198,7 +225,7 @@ function serializeSong(row, favSet, sings = []) {
     plays:      sings.length,
     url:        row.url || '',
     artists,
-    rating:     row.rating ?? null,
+    rating:     rating ?? null,
     lastPlayed: lastDate ? Date.parse(lastDate) || null : null,
     sings:      sings.map((s) => ({ id: Number(s.id), date: s.date })),
     favorite:   favSet ? favSet.has(Number(row.id)) : false,
@@ -219,19 +246,22 @@ function serializePlaylist(row, songIds) {
 export async function getSong(id, userId) {
   const { rows } = await pool.query('SELECT * FROM songs WHERE id = $1', [id]);
   if (!rows.length) return null;
-  const [singsRes, favRes] = await Promise.all([
+  const [singsRes, favRes, ratRes] = await Promise.all([
     pool.query('SELECT id, date FROM sings WHERE song_id = $1 AND user_id = $2 ORDER BY date', [id, userId]),
     pool.query('SELECT 1 FROM favorites WHERE song_id = $1 AND user_id = $2', [id, userId]),
+    pool.query('SELECT rating FROM ratings WHERE song_id = $1 AND user_id = $2', [id, userId]),
   ]);
   const favSet = new Set(favRes.rows.length ? [Number(id)] : []);
-  return serializeSong(rows[0], favSet, singsRes.rows);
+  const rating = ratRes.rows.length ? ratRes.rows[0].rating : null;
+  return serializeSong(rows[0], favSet, singsRes.rows, rating);
 }
 
 export async function allSongs(userId) {
-  const [songsRes, singsRes, favsRes] = await Promise.all([
+  const [songsRes, singsRes, favsRes, ratsRes] = await Promise.all([
     pool.query('SELECT * FROM songs ORDER BY created DESC, id DESC'),
     pool.query('SELECT song_id, id, date FROM sings WHERE user_id = $1 ORDER BY date', [userId]),
     pool.query('SELECT song_id FROM favorites WHERE user_id = $1', [userId]),
+    pool.query('SELECT song_id, rating FROM ratings WHERE user_id = $1', [userId]),
   ]);
   const singsMap = new Map();
   for (const s of singsRes.rows) {
@@ -240,8 +270,9 @@ export async function allSongs(userId) {
     singsMap.get(key).push({ id: Number(s.id), date: s.date });
   }
   const favSet = new Set(favsRes.rows.map((r) => Number(r.song_id)));
+  const ratMap = new Map(ratsRes.rows.map((r) => [Number(r.song_id), r.rating]));
   return songsRes.rows.map((row) =>
-    serializeSong(row, favSet, singsMap.get(Number(row.id)) || []),
+    serializeSong(row, favSet, singsMap.get(Number(row.id)) || [], ratMap.get(Number(row.id)) ?? null),
   );
 }
 

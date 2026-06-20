@@ -2,6 +2,7 @@ import { useStore } from '../store';
 import { GENRE_KEYS, GENRES } from '../constants';
 import { singCount } from '../utils';
 import type { Genre } from '../types';
+import { UserAdmin } from './UserAdmin';
 
 const panelBase = 'rounded-2xl bg-white/[.03] border border-white/[.08] backdrop-blur-md';
 const panelClass = `${panelBase} p-[22px]`;
@@ -235,6 +236,8 @@ export function Stats() {
           </div>
         </div>
       </div>
+
+      <UserAdmin />
     </div>
   );
 }

@@ -86,3 +86,7 @@ export interface AuthResult {
   token: string;
   user: User;
 }
+
+export interface AdminUser extends User {
+  playlistCount: number;
+}

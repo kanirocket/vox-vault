@@ -62,7 +62,7 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
               {menuOpen && (
                 <div className="absolute top-full right-0 mt-1 min-w-[168px] bg-[rgba(20,22,34,.98)] border border-white/12 rounded-[10px] shadow-[0_8px_28px_rgba(0,0,0,.5)] overflow-hidden z-20 animate-[vvPop_120ms_ease]">
                   <button onClick={() => { incPlays(s.id); setMenuOpen(false); }} className={`${menuItem} !text-accent`}><MicIcon size={17} />歌唱 +1</button>
-                  <button onClick={() => { showUnsing(s.id); setMenuOpen(false); }} className={menuItem}><MicIcon size={17} /><span className="flex-1">歌唱回数</span><span className="font-['Share_Tech_Mono',monospace] text-accent">{s.playsF}</span></button>
+                  <button onClick={() => { showUnsing(s.id); setMenuOpen(false); }} className={menuItem}><MicIcon size={17} />歌唱履歴</button>
                   <button onClick={() => { openAddToList(s.id); setMenuOpen(false); }} className={menuItem}><PlusIcon size={17} />リストに追加</button>
                   <button onClick={(e) => { e.stopPropagation(); startDel(s.id); setMenuOpen(false); }} className={`${menuItem} !text-[rgba(255,120,120,.95)]`}><TrashIcon size={16} />削除</button>
                 </div>
@@ -109,7 +109,6 @@ export function LibraryRow({ s, showGenre, gridTemplateColumns }: Props) {
       {showGenre && <div><span style={badgeStyle(s.color)}><span style={dotStyle(s.color)} />{s.genreLabel}</span></div>}
       <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/60">{s.dateF}</div>
       <div className="font-['Share_Tech_Mono',monospace] text-xs text-white/55">{s.viewsF}</div>
-      <button onClick={() => showUnsing(s.id)} title="クリックで取り消し" className="justify-self-start font-['Share_Tech_Mono',monospace] text-[13px] text-accent bg-transparent border-none cursor-pointer p-0 underline decoration-dotted underline-offset-2">{s.playsF}</button>
       <div className="flex items-center"><RatingStars rating={s.rating} onRate={(n) => rateSong(s.id, n)} /></div>
       <div className="flex items-center gap-[3px] justify-end">
         {isPending ? (

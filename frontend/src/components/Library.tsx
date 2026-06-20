@@ -40,7 +40,7 @@ export function Library() {
 
   const showGenre = filter === 'all';
   const isListView = view === 'list';
-  const gc = showGenre ? '96px 1fr 130px 104px 84px 76px 76px 106px' : '96px 1fr 104px 84px 76px 76px 106px';
+  const gc = showGenre ? '96px 1fr 130px 104px 84px 76px 106px' : '96px 1fr 104px 84px 76px 106px';
   const ar = (k: SortKey) => (sortKey === k ? (sortDir === 'asc' ? '▲' : '▼') : '');
 
   const vbClass = (on: boolean) =>
@@ -113,7 +113,6 @@ export function Library() {
               {showGenre && <span>GENRE</span>}
               <button onClick={() => toggleSort('date')} className={sortBtn}>投稿日 {ar('date')}</button>
               <button onClick={() => toggleSort('views')} className={sortBtn}>視聴 {ar('views')}</button>
-              <button onClick={() => toggleSort('plays')} className={sortBtn}>歌唱 {ar('plays')}</button>
               <span>歌える度</span>
               <span />
             </div>

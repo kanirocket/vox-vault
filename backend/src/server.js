@@ -11,6 +11,7 @@ import {
   getPlaylist,
   favsMap,
   getUser,
+  listUsers,
   getUserTheme,
   setUserTheme,
 } from './db.js';
@@ -142,7 +143,14 @@ api.put('/songs/:id/rating', async (req, res) => {
     if (!await getSong(id, req.userId)) return res.status(404).json({ error: 'not found' });
     const r      = req.body?.rating;
     const rating = Number.isInteger(r) && r >= 1 && r <= 5 ? r : null;
-    await pool.query('UPDATE songs SET rating = $1 WHERE id = $2', [rating, id]);
+    if (rating === null) {
+      await pool.query('DELETE FROM ratings WHERE user_id = $1 AND song_id = $2', [req.userId, id]);
+    } else {
+      await pool.query(
+        'INSERT INTO ratings (user_id, song_id, rating) VALUES ($1,$2,$3) ON CONFLICT (user_id, song_id) DO UPDATE SET rating = EXCLUDED.rating',
+        [req.userId, id, rating],
+      );
+    }
     res.json(await getSong(id, req.userId));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -220,6 +228,27 @@ api.put('/settings', async (req, res) => {
     const theme = req.body?.theme;
     if (theme && ['holo', 'neon', 'acid'].includes(theme)) await setUserTheme(req.userId, theme);
     res.json({ theme: await getUserTheme(req.userId) });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── admin: users & their playlists ───────────────────────────────────────────
+async function requireAdmin(req, res) {
+  const me = await getUser(req.userId);
+  if (!me?.isAdmin) { res.status(403).json({ error: 'admin only' }); return null; }
+  return me;
+}
+
+api.get('/users', async (req, res) => {
+  try {
+    if (!await requireAdmin(req, res)) return;
+    res.json(await listUsers());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+api.get('/users/:id/playlists', async (req, res) => {
+  try {
+    if (!await requireAdmin(req, res)) return;
+    res.json(await allPlaylists(+req.params.id));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

@@ -109,7 +109,6 @@ export function Playlists() {
                     <span className="text-[11px] text-white/45 whitespace-nowrap overflow-hidden text-ellipsis">{s.artist}</span>
                   </div>
                 </div>
-                <span className="font-['Share_Tech_Mono',monospace] text-[11px] text-accent shrink-0">{s.playsF} 歌唱</span>
                 <button onClick={() => removeFromList(s.id, activeListObj.id)} title="リストから削除" className="shrink-0 bg-transparent border border-white/15 cursor-pointer text-white/60 rounded-md px-2 py-1 text-[12px]">✕</button>
               </div>
             ))}
@@ -128,7 +127,6 @@ export function Playlists() {
                 <div className="px-[13px] pt-2.5 pb-3">
                   <button onClick={() => window.open(s.url, '_blank')} data-hover="title" title="YouTubeで開く" className="block w-full text-left text-[13px] font-bold overflow-hidden text-ellipsis whitespace-nowrap bg-transparent border-none cursor-pointer text-white p-0 transition-colors">{s.title}</button>
                   <div className="text-[11px] text-white/50 mt-0.5">{s.artist}</div>
-                  <div className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/40 mt-1.5">{s.playsF} 歌唱</div>
                 </div>
               </div>
             ))}
