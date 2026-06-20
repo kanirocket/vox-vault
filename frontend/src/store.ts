@@ -61,6 +61,7 @@ interface Store {
   // actions
   initAuth: () => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   logout: () => void;
   boot: () => Promise<void>;
   showToast: (msg: string, type?: ToastType) => void;
@@ -169,6 +170,23 @@ export const useStore = create<Store>((set, get) => ({
       get().showToast(`ようこそ、${r.user.name || 'ゲスト'} さん`);
     } catch {
       get().showToast('Google サインインに失敗しました', 'error');
+    }
+  },
+
+  loginAsGuest: async () => {
+    try {
+      let gid = localStorage.getItem('vv_guest_id');
+      if (!gid) {
+        gid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `g${Date.now()}${Math.random().toString(16).slice(2)}`;
+        localStorage.setItem('vv_guest_id', gid);
+      }
+      const r = await api<AuthResult>('/auth/guest', { method: 'POST', body: JSON.stringify({ guestId: gid }) });
+      setToken(r.token);
+      set({ user: r.user, theme: r.user.theme });
+      await get().boot();
+      get().showToast('ゲストとして続行します', 'info');
+    } catch {
+      get().showToast('ゲストログインに失敗しました', 'error');
     }
   },
 

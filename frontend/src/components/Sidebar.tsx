@@ -10,11 +10,12 @@ const navBtnClass = (on: boolean) =>
     ? 'bg-white/[.06] border-accent text-white shadow-[inset_0_0_36px_var(--glow)]'
     : 'bg-transparent border-transparent text-white/50');
 
-const NAV: { key: Screen; jp: string; en: string; icon: ReactNode }[] = [
+const NAV: { key: Screen; jp: string; en: string; icon: ReactNode; adminOnly?: boolean }[] = [
   { key: 'library', jp: 'ライブラリ', en: 'LIBRARY', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg> },
   { key: 'register', jp: '楽曲を登録', en: 'REGISTER', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /><line x1="11" y1="8" x2="11" y2="14" /><line x1="8" y1="11" x2="14" y2="11" /></svg> },
   { key: 'lists', jp: 'マイリスト', en: 'PLAYLISTS', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h13M3 12h13M3 18h9" /><path d="M19 9v9l4-2.2" /></svg> },
   { key: 'favorites', jp: 'お気に入り', en: 'FAVORITES', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polygon points="12 2.5 15.1 9 22 9.7 16.8 14.4 18.3 21 12 17.4 5.7 21 7.2 14.4 2 9.7 8.9 9" /></svg> },
+  { key: 'users', jp: '登録ユーザー', en: 'USERS', adminOnly: true, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> },
   { key: 'stats', jp: '統計', en: 'ANALYTICS', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3v18h18" /><rect x="7" y="11" width="3" height="6" /><rect x="13" y="7" width="3" height="10" /></svg> },
 ];
 
@@ -59,7 +60,7 @@ export function Sidebar() {
       </div>
       <div className="font-['Share_Tech_Mono',monospace] text-[9px] tracking-[2px] text-white/30 px-3 pb-2">// NAVIGATION</div>
       <nav className="flex flex-col gap-0.5">
-        {NAV.map((n) => (
+        {NAV.filter((n) => !n.adminOnly || user?.isAdmin).map((n) => (
           <button key={n.key} className={navBtnClass(isActive(n.key))} onClick={() => handleNav(n.key)}>
             {n.icon}
             <div>

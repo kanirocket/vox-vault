@@ -38,7 +38,7 @@ export function UserAdmin() {
   };
 
   return (
-    <div className="mt-4">
+    <div className="animate-[vvFade_200ms_ease]">
       <div className="font-['Share_Tech_Mono',monospace] text-[11px] tracking-[2px] text-white/45 mb-1.5">REGISTERED USERS</div>
       <div className="text-[15px] font-bold mb-4">登録ユーザー<span className="text-[10px] font-normal text-white/40 ml-2">{users ? `${users.length}人` : ''}</span></div>
 

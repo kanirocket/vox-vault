@@ -33,6 +33,7 @@ function loadGis(): Promise<void> {
 
 export function Login() {
   const loginWithGoogle = useStore((s) => s.loginWithGoogle);
+  const loginAsGuest = useStore((s) => s.loginAsGuest);
   const btnRef = useRef<HTMLDivElement>(null);
   // client id is fetched from the backend at runtime (no build-time bake)
   const [clientId, setClientId] = useState<string | null>(null);
@@ -85,6 +86,17 @@ export function Login() {
             サーバーの <code className="font-['Share_Tech_Mono',monospace]">GOOGLE_CLIENT_ID</code> を設定してください。
           </div>
         )}
+
+        {/* guest login (always available) */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="font-['Share_Tech_Mono',monospace] text-[10px] text-white/30">または</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+        <button onClick={() => loginAsGuest()} className="w-full py-3 rounded-full cursor-pointer text-[13px] font-bold text-white/80 bg-white/[.06] border border-white/15 transition-colors hover:bg-white/[.1]">
+          ゲストとして続ける
+        </button>
+        <p className="text-[10px] text-white/35 mt-2 leading-[1.6]">ゲストのデータはこのブラウザに紐づきます。</p>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ export function Header() {
     register: { en: '// REGISTER', title: '楽曲を登録', desc: 'YOUTUBE → VAULT' },
     lists: { en: '// PLAYLISTS', title: activeListObj ? activeListObj.name : 'マイリスト', desc: activeListObj ? activeListObj.songIds.length + ' TRACKS' : lists.length + ' LISTS' },
     favorites: { en: '// FAVORITES', title: 'お気に入り', desc: favCount + ' FAVORITED' },
+    users: { en: '// USERS', title: '登録ユーザー', desc: 'MEMBER DIRECTORY' },
     stats: { en: '// ANALYTICS', title: '統計ダッシュボード', desc: 'VAULT INSIGHTS' },
   };
   const h = screen === 'library' && favOnly

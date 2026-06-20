@@ -25,6 +25,11 @@ export function googleClientId() {
   return GOOGLE_CLIENT_ID;
 }
 
+// Sign a session JWT for a given user id.
+export function signSession(userId) {
+  return jwt.sign({ uid: userId }, SESSION_SECRET, { expiresIn: SESSION_TTL });
+}
+
 // Verify a Google ID token, upsert the user, return { token, user }.
 export async function loginWithGoogle(idToken) {
   if (!GOOGLE_CLIENT_ID) throw new Error('GOOGLE_CLIENT_ID is not configured on the server');
@@ -32,8 +37,7 @@ export async function loginWithGoogle(idToken) {
   const p = ticket.getPayload();
   if (!p?.sub) throw new Error('invalid Google token');
   const user = await upsertUser({ sub: p.sub, email: p.email, name: p.name, picture: p.picture });
-  const token = jwt.sign({ uid: user.id }, SESSION_SECRET, { expiresIn: SESSION_TTL });
-  return { token, user };
+  return { token: signSession(user.id), user };
 }
 
 // Express middleware: require a valid session JWT, set req.userId.

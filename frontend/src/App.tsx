@@ -9,6 +9,7 @@ import { Library } from './components/Library';
 import { Register } from './components/Register';
 import { Playlists } from './components/Playlists';
 import { Stats } from './components/Stats';
+import { UserAdmin } from './components/UserAdmin';
 import { Modals } from './components/Modals';
 import { Toast } from './components/Toast';
 import { Login } from './components/Login';
@@ -20,6 +21,7 @@ function Screen() {
     case 'register': return <Register />;
     case 'lists': return <Playlists />;
     case 'favorites': return <Library />;
+    case 'users': return <UserAdmin />;
     case 'stats': return <Stats />;
     default: return null;
   }

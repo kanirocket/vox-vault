@@ -177,6 +177,21 @@ export async function upsertUser({ sub, email, name, picture }) {
   });
 }
 
+// Find-or-create a guest user keyed by a client-generated id (stored in the
+// browser). Guests are never admin and never claim legacy data.
+export async function upsertGuest(guestId) {
+  const sub = `guest:${guestId}`;
+  return withTransaction(async (client) => {
+    const existing = await client.query('SELECT * FROM users WHERE google_sub = $1', [sub]);
+    if (existing.rows.length) return serializeUser(existing.rows[0]);
+    const ins = await client.query(
+      'INSERT INTO users (google_sub,email,name,picture,is_admin,created) VALUES ($1,$2,$3,$4,FALSE,$5) RETURNING *',
+      [sub, '', 'ゲスト', '', Date.now()],
+    );
+    return serializeUser(ins.rows[0]);
+  });
+}
+
 export async function getUser(userId) {
   const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
   return rows.length ? serializeUser(rows[0]) : null;

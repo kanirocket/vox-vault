@@ -1,6 +1,6 @@
 // ── domain types (mirror the backend serializers) ───────────────────────────
 export type Genre = 'vocaloid' | 'anime' | 'artist' | 'game' | 'bgm';
-export type Screen = 'library' | 'register' | 'lists' | 'favorites' | 'stats';
+export type Screen = 'library' | 'register' | 'lists' | 'favorites' | 'users' | 'stats';
 export type Theme = 'holo' | 'neon' | 'acid';
 export type ViewMode = 'list' | 'grid';
 export type SortKey = 'added' | 'title' | 'date' | 'views' | 'plays';

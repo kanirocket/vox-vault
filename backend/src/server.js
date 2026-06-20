@@ -12,11 +12,13 @@ import {
   favsMap,
   getUser,
   listUsers,
+  upsertGuest,
   getUserTheme,
   setUserTheme,
 } from './db.js';
+import { randomUUID } from 'node:crypto';
 import { searchYouTube, suggestYouTube } from './youtube.js';
-import { authConfigured, googleClientId, loginWithGoogle, authMiddleware } from './auth.js';
+import { authConfigured, googleClientId, loginWithGoogle, signSession, authMiddleware } from './auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -37,6 +39,17 @@ api.post('/auth/google', async (req, res) => {
     res.json(await loginWithGoogle(idToken));
   } catch (e) {
     res.status(401).json({ error: 'google sign-in failed', detail: e.message });
+  }
+});
+
+// Guest login: find-or-create a guest user keyed by a client-provided id.
+api.post('/auth/guest', async (req, res) => {
+  try {
+    const guestId = String(req.body?.guestId || '').replace(/[^\w-]/g, '').slice(0, 64) || randomUUID();
+    const user = await upsertGuest(guestId);
+    res.json({ token: signSession(user.id), user });
+  } catch (e) {
+    res.status(500).json({ error: 'guest login failed', detail: e.message });
   }
 });
 
