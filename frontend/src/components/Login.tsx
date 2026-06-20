@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+import { api } from '../api';
 
 // Minimal typing for the Google Identity Services global.
 interface GoogleId {
@@ -35,14 +34,24 @@ function loadGis(): Promise<void> {
 export function Login() {
   const loginWithGoogle = useStore((s) => s.loginWithGoogle);
   const btnRef = useRef<HTMLDivElement>(null);
+  // client id is fetched from the backend at runtime (no build-time bake)
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!CLIENT_ID) return;
+    api<{ configured: boolean; clientId: string }>('/auth/config')
+      .then((c) => setClientId(c.clientId || null))
+      .catch(() => setClientId(null))
+      .finally(() => setReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (!clientId) return;
     let cancelled = false;
     loadGis().then(() => {
       if (cancelled || !window.google || !btnRef.current) return;
       window.google.accounts.id.initialize({
-        client_id: CLIENT_ID,
+        client_id: clientId,
         callback: (r) => loginWithGoogle(r.credential),
       });
       window.google.accounts.id.renderButton(btnRef.current, {
@@ -50,7 +59,7 @@ export function Login() {
       });
     }).catch(() => { /* network/script error — handled by the missing button */ });
     return () => { cancelled = true; };
-  }, [loginWithGoogle]);
+  }, [clientId, loginWithGoogle]);
 
   return (
     <div
@@ -66,12 +75,14 @@ export function Login() {
         <p className="text-[13px] text-white/55 leading-[1.8] mx-0 mt-[26px] mb-6">
           サインインして、あなただけのお気に入り・<br />マイリスト・歌唱記録を管理しましょう。
         </p>
-        {CLIENT_ID ? (
+        {!ready ? (
+          <div className="font-['Share_Tech_Mono',monospace] text-[11px] text-white/40 min-h-[44px] grid place-items-center">LOADING…</div>
+        ) : clientId ? (
           <div ref={btnRef} className="flex justify-center min-h-[44px]" />
         ) : (
           <div className="px-4 py-[14px] rounded-[10px] bg-[rgba(255,200,0,.07)] border border-[rgba(255,200,0,.3)] text-xs text-[#ffd24a] leading-[1.7] text-left">
             Google サインインが未設定です。<br />
-            <code className="font-['Share_Tech_Mono',monospace]">VITE_GOOGLE_CLIENT_ID</code> をビルド時に設定してください。
+            サーバーの <code className="font-['Share_Tech_Mono',monospace]">GOOGLE_CLIENT_ID</code> を設定してください。
           </div>
         )}
       </div>

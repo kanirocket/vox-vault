@@ -19,6 +19,12 @@ export function authConfigured() {
   return Boolean(GOOGLE_CLIENT_ID);
 }
 
+// The OAuth client id is public; the frontend fetches it at runtime so the
+// Docker image needs no build-time secret (plain `docker compose up -d` works).
+export function googleClientId() {
+  return GOOGLE_CLIENT_ID;
+}
+
 // Verify a Google ID token, upsert the user, return { token, user }.
 export async function loginWithGoogle(idToken) {
   if (!GOOGLE_CLIENT_ID) throw new Error('GOOGLE_CLIENT_ID is not configured on the server');

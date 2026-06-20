@@ -29,19 +29,24 @@ YOUTUBE_API_KEY=your_key_here docker compose up --build
 このアプリは Google サインインでのログインが必須です。お気に入り・マイリスト・歌唱記録は**アカウントごと**に管理されます（曲カタログは全ユーザー共有）。
 
 1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) で **OAuth 2.0 クライアント ID（ウェブアプリケーション）** を作成
-2. 「承認済みの JavaScript 生成元」にアプリの URL を追加（例：`http://localhost:4030`、`https://dev-vox-vault.kanirocket.com`）
-3. 取得したクライアント ID を環境変数に設定して起動：
+2. 「承認済みの JavaScript 生成元」にアプリの URL を追加（例：`http://localhost:4030`、`https://dev-vox-vault.kanirocket.com`、`https://vox-vault.kanirocket.com`）
+3. リポジトリのルートに `.env` を作成（`.gitignore` 済み）：
 
 ```bash
-GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com \
-SESSION_SECRET=$(openssl rand -hex 32) \
-docker compose up --build
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+SESSION_SECRET=<強固なランダム値（例: openssl rand -hex 32）>
 ```
 
-- `GOOGLE_CLIENT_ID` はバックエンド（トークン検証）とフロントエンド（`VITE_GOOGLE_CLIENT_ID` としてビルド時に埋め込み）の両方で使われます
+4. 起動：
+
+```bash
+docker compose up -d            # 通常起動（イメージがある場合）
+docker compose up -d --build    # コード変更を反映する場合
+```
+
+- `GOOGLE_CLIENT_ID` は**バックエンドが実行時に読み込み**、フロントエンドは起動時に `/api/auth/config` から取得します（ビルド時の埋め込み不要）。そのため Client ID を変えても**再ビルド不要**で、`docker compose up -d` だけで dev・本番とも同じイメージで動きます
 - `SESSION_SECRET` はセッション JWT の署名鍵。本番では必ず強固なランダム値を設定してください
 - **最初にサインインしたユーザーが管理者**になり、移行前の既存のお気に入り・歌唱履歴・マイリストを引き継ぎます
-- ローカル開発（`npm run dev`）では `frontend/.env`（`.env.example` 参照）に `VITE_GOOGLE_CLIENT_ID` を設定
 
 ### コンテナ更新時の注意
 

@@ -20,8 +20,6 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-      args:
-        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     image: vox-vault
     container_name: vox-vault
     depends_on:
@@ -35,7 +33,8 @@ services:
       # Without it, the register flow scrapes YouTube or returns mock candidates.
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
       # Google Sign-In: OAuth 2.0 Web client ID (from Google Cloud Console).
-      # Must match VITE_GOOGLE_CLIENT_ID baked into the frontend build.
+      # Read at runtime and served to the frontend via /api/auth/config — no
+      # rebuild needed when it changes, so `docker compose up -d` is enough.
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       # Secret used to sign session JWTs — set a strong random value in prod.
       - SESSION_SECRET=${SESSION_SECRET:-dev-insecure-secret-change-me}

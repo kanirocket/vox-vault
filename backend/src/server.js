@@ -15,7 +15,7 @@ import {
   setUserTheme,
 } from './db.js';
 import { searchYouTube, suggestYouTube } from './youtube.js';
-import { authConfigured, loginWithGoogle, authMiddleware } from './auth.js';
+import { authConfigured, googleClientId, loginWithGoogle, authMiddleware } from './auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -27,7 +27,7 @@ const GENRE_COLORS = { vocaloid: '#38e8ff', anime: '#ff5db1', artist: '#b18cff',
 const VALID_GENRES = Object.keys(GENRE_COLORS);
 
 // ── auth (public) ───────────────────────────────────────────────────────────
-api.get('/auth/config', (_req, res) => res.json({ configured: authConfigured() }));
+api.get('/auth/config', (_req, res) => res.json({ configured: authConfigured(), clientId: googleClientId() }));
 
 api.post('/auth/google', async (req, res) => {
   try {
